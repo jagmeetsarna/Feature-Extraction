@@ -22,7 +22,7 @@ public:
 	}
 
 	float calculateSurfaceArea();
-
+	float calculateEccentricity();
 	float calculateVolume();
 
 	float calculateBoundedBoxVolume();
