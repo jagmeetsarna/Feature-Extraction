@@ -569,3 +569,37 @@ float Grid::calculateDiameter() {
 	return disFromFarthest;
 }
 
+float Grid::calculateEccentricity() {
+	float majorEigenValue;
+	float minorEigenValue;
+	float eccentricity;
+	computeCovarianceMatrix();
+
+	Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eig(covarianceMatrix);
+
+
+	majorEigenValue = eig.eigenvalues()[0];
+	minorEigenValue = eig.eigenvalues()[0];
+
+	for (int i = 1; i < 3;i++) {
+		if (majorEigenValue < eig.eigenvalues()[i])
+			{
+			majorEigenValue = eig.eigenvalues()[i];
+			}
+	}
+	for (int i = 1; i < 3; i++) {
+		if (minorEigenValue > eig.eigenvalues()[i])
+		{
+			minorEigenValue = eig.eigenvalues()[i];
+		}
+	}
+	
+	
+	//cout << abs(majorEigenValue)/abs(minorEigenValue) << endl;
+	eccentricity = abs(majorEigenValue) / abs(minorEigenValue);
+	
+	return eccentricity;
+
+}
+
+
