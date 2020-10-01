@@ -411,7 +411,33 @@ float Grid::calculateVolume() {
 	}
 
 	volume = tempVolume / 6;
-	cout << volume;
+	if (sgn(volume) == -1) {
+		volume *= -1;
+	}
 	return volume;
 }
+
+float Grid::calculateSphericity() {
+
+	calculateSurfaceArea();
+	calculateVolume();
+
+	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
+	sphericity = 1 / compactness;
+	return sphericity;
+}
+
+float Grid::calculateBoundingBoxVol() {
+
+	float s1, s2, s3;
+
+	s1 = (maxX - minX);
+	s2 = (maxY - minY);
+	s3 = (maxZ - minZ);
+
+	boundingBoxVolume = s1 * s2 * s3;
+	return boundingBoxVolume;
+}
+
+
 

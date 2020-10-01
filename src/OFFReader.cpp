@@ -122,6 +122,8 @@ std::tuple<Grid*, FilterItem> openFile(string fileName)
 		fi.minY = miy;
 		fi.minZ = miz;
 
+		grid->setExtremes(mix, max, miy, may, miz, maz);
+
 		bool allTriangles = true, allQuads = true;
 
 		for (j = 0; j < fi.numFaces; j++)

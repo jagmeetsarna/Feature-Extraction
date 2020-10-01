@@ -9,6 +9,10 @@
 
 using namespace std;
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 
 class Grid
 {
@@ -25,6 +29,18 @@ public:
 
 	float calculateVolume();
 
+	float calculateSphericity();
+
+	float calculateBoundingBoxVol();
+
+	void setExtremes(float mix, float max, float miy, float may, float miz, float maz) {
+		minX = mix;
+		maxX = max;
+		minY = miy;
+		maxY = may;
+		minZ = miz;
+		maxZ = maz;
+	}
 
 	int numPoints()
 	{
@@ -114,6 +130,8 @@ protected:
 	float				surfaceArea;
 	float				volume;
 	float				compactness;
+	float				sphericity;
+	float				minX, maxX, minY, maxY, minZ, maxZ;
 	float				boundingBoxVolume;
 	float				diameter;
 	float				eccentricity;
