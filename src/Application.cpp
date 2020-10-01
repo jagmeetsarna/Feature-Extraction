@@ -151,9 +151,11 @@ int main(int argc, char* argv[])
 
     std::tuple<Grid*, FilterItem> tup = openFile(input);
     grid = std::get<0>(tup);
-
-   // grid->calculateVolume();
-   //grid->calculateBoundedBoxVolume();
-    grid->calculateDiameter();
+    
+    // grid->calculateVolume();
+    //grid->calculateBoundedBoxVolume();
+    //grid->calculateDiameter();
+    grid->calculateEccentricity();
+    
     return 0;
 }
