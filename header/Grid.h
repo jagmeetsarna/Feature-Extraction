@@ -8,16 +8,14 @@
 #include <Eigen/Dense>
 
 using namespace std;
-
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
 #endif
 
-
 class Grid
 {
 public:
-	Grid(int P, int C): scalars(P), pointNormals(P), faceNormals(C), pointsZ(P)															//Resize the array for the points and cells for the grid
+	Grid(int P, int C) : scalars(P), pointNormals(P), faceNormals(C), pointsZ(P)															//Resize the array for the points and cells for the grid
 	{
 		pointsX.resize(P);
 		pointsY.resize(P);
@@ -26,12 +24,20 @@ public:
 	}
 
 	float calculateSurfaceArea();
+	float calculateEccentricity();
+
+	float calculateBoundedBoxVolume();
+	float calculateDiameter();
 
 	float calculateVolume();
 
 	float calculateSphericity();
 
 	float calculateBoundingBoxVol();
+
+	double calculateAngleBetweenPoints();
+
+
 
 	void setExtremes(float mix, float max, float miy, float may, float miz, float maz) {
 		minX = mix;
@@ -106,7 +112,7 @@ public:
 	int sgn(float x) {
 		if (x > 0) return 1;
 		if (x < 0) return -1;
-		return 0;
+		return 1;
 	}
 	void PCARotation();
 

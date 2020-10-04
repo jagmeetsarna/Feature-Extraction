@@ -14,6 +14,7 @@
 #include "..\header\Grid.h"
 #include "..\header\FilterItem.h"
 #include "..\header\OFFReader.h"
+
 using namespace std;
 namespace fs = std::filesystem;
 void loadFilter();
@@ -151,19 +152,11 @@ int main(int argc, char* argv[])
 
     std::tuple<Grid*, FilterItem> tup = openFile(input);
     grid = std::get<0>(tup);
-
-    cout << "Surface Area: ";
-    cout << grid->calculateSurfaceArea() << endl;
-
-    cout << "Compactness: ";
-    float compactness, sphericity = grid->calculateSurfaceArea();
-    cout << compactness << endl;
-
-    cout << "Sphericity: ";
-    cout << sphericity << endl;
-
-    cout << "Bounding Box Volume: ";
-    cout << grid->calculateBoundingBoxVol() << endl;
-
+    
+    // grid->calculateVolume();
+    //grid->calculateBoundedBoxVolume();
+    //grid->calculateDiameter();
+    grid->calculateEccentricity();
+    
     return 0;
 }
