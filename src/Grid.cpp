@@ -1,7 +1,7 @@
 #include "..\header\Grid.h"
 #include <iostream>
 #include <algorithm>
-
+#include <random>
 using namespace std;
 
 
@@ -172,7 +172,7 @@ void Grid::computeCovarianceMatrix() {
 		point.push_back(pointsZ[i]);
 		points.push_back(point);
 	}
-		
+	
 	means[0] /= points.size(), means[1] /= points.size(), means[2] /= points.size();
 
 	for (int i = 0; i < 3; i++) {
@@ -182,15 +182,11 @@ void Grid::computeCovarianceMatrix() {
 				covariance[i][j] += (means[i] - points[k][i]) *
 				(means[j] - points[k][j]);
 			covariance[i][j] /= points.size() - 1;
-			//cout << covariance[i][j];
-			//cout << ";";
 		}
-		//cout << endl;
 	}
 	covarianceMatrix << covariance[0][0], covariance[0][1], covariance[0][2],
 		covariance[1][0], covariance[1][1], covariance[1][2],
 		covariance[2][0], covariance[2][1], covariance[2][2];
-	//cout << covarianceMatrix << endl;
 }
 
 void Grid::computeEigenvectors() {
@@ -292,15 +288,13 @@ void Grid::PCARotation() {
 		newPoint.x = (vec1[0] * pointsX[i] + vec1[1] * pointsY[i] + vec1[2] * pointsZ[i]);
 		newPoint.y = (vec2[0] * pointsX[i] + vec2[1] * pointsY[i] + vec2[2] * pointsZ[i]);
 
-
-		//vec3 = crossproduct of vec1 and vec2
-		/*vec1[0] = vec3[1] * vec2[2] - vec3[2] * vec2[1];
-		vec1[0] = vec3[2] * vec2[0] - vec3[0] * vec2[2];
-		vec1[0] = vec3[0] * vec2[1] - vec3[1] * vec2[0];*/
-
 		newPoint.x = (vec3[0]	* pointsX[i]	+ vec3[1]	* pointsY[i]	+ vec3[2]	* pointsZ[i]);
 		newPoint.y = (vec2[0]	* pointsX[i]	+ vec2[1]	* pointsY[i]	+ vec2[2]	* pointsZ[i]);
 		newPoint.z = (vec1[0]	* pointsX[i]	+ vec1[1]	* pointsY[i]	+ vec1[2]	* pointsZ[i]);
+
+		newPoint.x = (vec3[0] * pointsX[i] + vec3[1] * pointsY[i] + vec3[2] * pointsZ[i]);
+		newPoint.y = (vec2[0] * pointsX[i] + vec2[1] * pointsY[i] + vec2[2] * pointsZ[i]);
+		newPoint.z = (vec1[0] * pointsX[i] + vec1[1] * pointsY[i] + vec1[2] * pointsZ[i]);
 
 		pointsX[i] = newPoint.x;
 		pointsY[i] = newPoint.y;
@@ -351,10 +345,14 @@ float Grid::calculateSurfaceArea() {
 		cout << Point3d(p1).x << " " << Point3d(p1).y << " " << Point3d(p1).z << endl;
 		cout << Point3d(p2).x << " " << Point3d(p2).y << " " << Point3d(p2).z << endl;*/
 
-
 		d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x),2) + pow((Point3d(p1).y - Point3d(p0).y),2) + pow((Point3d(p1).z - Point3d(p0).z),2));
 		d2 = sqrt(pow((Point3d(p2).x - Point3d(p1).x),2) + pow((Point3d(p2).y - Point3d(p1).y),2) + pow((Point3d(p2).z - Point3d(p1).z),2));
 		d3 = sqrt(pow((Point3d(p0).x - Point3d(p2).x),2) + pow((Point3d(p0).y - Point3d(p2).y),2) + pow((Point3d(p0).z - Point3d(p2).z),2));
+
+		d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x), 2) + pow((Point3d(p1).y - Point3d(p0).y), 2) + pow((Point3d(p1).z - Point3d(p0).z), 2));
+		d2 = sqrt(pow((Point3d(p2).x - Point3d(p1).x), 2) + pow((Point3d(p2).y - Point3d(p1).y), 2) + pow((Point3d(p2).z - Point3d(p1).z), 2));
+		d3 = sqrt(pow((Point3d(p0).x - Point3d(p2).x), 2) + pow((Point3d(p0).y - Point3d(p2).y), 2) + pow((Point3d(p0).z - Point3d(p2).z), 2));
+
 		s = (d1 + d2 + d3) / 2;
 
 		cellArea = sqrt(s * ((s - d1) * (s - d2) * (s - d3)));
@@ -483,8 +481,34 @@ float Grid::calculateBoundedBoxVolume() {
 	Volume = (max_value_x - min_value_x) * (max_value_y - min_value_y) * (max_value_z - min_value_z);
 	//cout << (max_value_x-min_value_x) * (max_value_y - min_value_y) * (max_value_z - min_value_z);
 
-	return Volume;
+	if (sgn(volume) == -1) {
+		volume *= -1;
+	}
+	return volume;
 }
+
+float Grid::calculateSphericity() {
+
+	calculateSurfaceArea();
+	calculateVolume();
+
+	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
+	sphericity = 1 / compactness;
+	return sphericity;
+}
+
+float Grid::calculateBoundingBoxVol() {
+
+	float s1, s2, s3;
+
+	s1 = (maxX - minX);
+	s2 = (maxY - minY);
+	s3 = (maxZ - minZ);
+
+	boundingBoxVolume = s1 * s2 * s3;
+	return boundingBoxVolume;
+}
+
 float Grid::calculateDiameter() {
 
 	float disFromBary = -1;
@@ -495,7 +519,6 @@ float Grid::calculateDiameter() {
 
 	
 	for (int i = 0; i < numCells(); i++) {
-
 		float cellArea = 0;
 		float s = 0;
 		Point3d points[3];
@@ -533,15 +556,13 @@ float Grid::calculateDiameter() {
 
 	}
 	for (int i = 0; i < numCells(); i++) {
-
 		float cellArea = 0;
 		float s = 0;
-		Point3d points[3];
 
 		int vertices[3];
 		int size = getCell(i, vertices);
 
-		float d1, d2, d3;
+		float d1, d2;
 		float p0[3];
 		float p1[3];
 	
@@ -602,4 +623,51 @@ float Grid::calculateEccentricity() {
 
 }
 
+double Grid::calculateAngleBetweenPoints() {
+		
+		
+		
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<> dis(0, numCells());
+		double res;
+		Point3d points[3];
+
+		int vertices[3];
+	
+		int size = getCell(dis(gen), vertices);
+		
+		for (int i=0;i<10;i++) //trial
+		{	
+			int size = getCell(dis(gen), vertices);
+
+			float p0[3];
+			float p1[3];
+			float p2[3];
+
+			
+			getPoint(vertices[0], p0);
+			getPoint(vertices[1], p1);
+			getPoint(vertices[2], p2);
+
+
+			double ba[3] = { Point3d(p0).x - Point3d(p1).x, Point3d(p0).y - Point3d(p1).y, Point3d(p0).z - Point3d(p1).z };
+			double bc[3] = { Point3d(p2).x - Point3d(p1).x, Point3d(p2).y - Point3d(p1).y, Point3d(p2).z - Point3d(p1).z };
+			//normalizing
+			double baVec = sqrt(ba[0] * ba[0] + ba[1] * ba[1] + ba[2] * ba[2]);
+			double bcVec = sqrt(bc[0] * bc[0] + bc[1] * bc[1] + bc[2] * bc[2]);
+
+			double baNorm[3] = { ba[0] / baVec, ba[1] / baVec, ba[2] / baVec };
+			double bcNorm[3] = { bc[0] / bcVec, bc[1] / bcVec, bc[2] / bcVec };
+
+			//calculating the dot product
+			res = baNorm[0] * bcNorm[0] + baNorm[1] * bcNorm[1] + baNorm[2] * bcNorm[2];
+			cout << acos(res) * 180.0 / M_PI;
+		}
+			
+		return acos(res) * 180.0 / M_PI;
+	
+	
+
+}
 

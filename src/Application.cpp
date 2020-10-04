@@ -14,6 +14,7 @@
 #include "..\header\Grid.h"
 #include "..\header\FilterItem.h"
 #include "..\header\OFFReader.h"
+
 using namespace std;
 namespace fs = std::filesystem;
 void loadFilter();
