@@ -152,8 +152,18 @@ int main(int argc, char* argv[])
     std::tuple<Grid*, FilterItem> tup = openFile(input);
     grid = std::get<0>(tup);
 
+    cout << "Surface Area: ";
+    cout << grid->calculateSurfaceArea() << endl;
 
-    cout << grid->calculateBoundingBoxVol();
+    cout << "Compactness: ";
+    float compactness, sphericity = grid->calculateSurfaceArea();
+    cout << compactness << endl;
+
+    cout << "Sphericity: ";
+    cout << sphericity << endl;
+
+    cout << "Bounding Box Volume: ";
+    cout << grid->calculateBoundingBoxVol() << endl;
 
     return 0;
 }

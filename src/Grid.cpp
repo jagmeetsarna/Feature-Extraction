@@ -424,7 +424,7 @@ float Grid::calculateSphericity() {
 
 	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
 	sphericity = 1 / compactness;
-	return sphericity;
+	return compactness, sphericity;
 }
 
 float Grid::calculateBoundingBoxVol() {
