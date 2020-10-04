@@ -147,37 +147,43 @@ void loadFilter()
 int main(int argc, char* argv[])
 {
     string input;
-    cout << "Please specify the file you want to view:" << endl;
-    cin >> input;
 
-    std::tuple<Grid*, FilterItem> tup = openFile(input);
-    grid = std::get<0>(tup);
-    
+    for (int i = 0; i < 3; i++) {
 
-    cout << "Surface Area: ";
-    cout << grid->calculateSurfaceArea() << endl;
+        string input;
+        cout << "Please specify the file you want to view:" << endl;
+        cin >> input;
 
-    cout << "Volume: ";
-    cout << grid->calculateVolume() << endl;
+        std::tuple<Grid*, FilterItem> tup = openFile(input);
+        grid = std::get<0>(tup);
 
-    //cout << "Compactness: ";
-    float compactness;
-    float sphericity;
-    sphericity = grid->calculateSphericity();
-    //cout << grid.compactness << endl;
 
-    cout << "Sphericity: ";
-    cout << sphericity << endl;
+        cout << "Surface Area: ";
+        cout << grid->calculateSurfaceArea() << endl;
 
-    cout << "Bounding Box Volume: ";
-    cout << grid->calculateBoundingBoxVol() << endl;
+        cout << "Volume: ";
+        cout << grid->calculateVolume() << endl;
 
-    cout << "Diameter: ";
-    cout << grid->calculateDiameter() << endl;
-    
+        //cout << "Compactness: ";
+        float compactness;
+        float sphericity;
+        sphericity = grid->calculateSphericity();
+        //cout << grid.compactness << endl;
 
-    cout << "Eccentricity: ";
-    cout << grid->calculateEccentricity() << endl;
+        cout << "Sphericity: ";
+        cout << sphericity << endl;
+
+        cout << "Bounding Box Volume: ";
+        cout << grid->calculateBoundingBoxVol() << endl;
+
+        cout << "Diameter: ";
+        cout << grid->calculateDiameter() << endl;
+
+
+        cout << "Eccentricity: ";
+        cout << grid->calculateEccentricity() << endl;
+
+    }
     
     return 0;
 }

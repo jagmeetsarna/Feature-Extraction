@@ -448,76 +448,37 @@ float Grid::calculateDiameter() {
 	float far_y = 0;
 	float far_z = 0;
 
+	for (int i = 0; i < numPoints(); i++) {				// Find the point furthest from the barycenter
 
-	for (int i = 0; i < numCells(); i++) {
-		float cellArea = 0;
-		float s = 0;
-		Point3d points[3];
+		float p[3];
+		getPoint(i, p);
 
-		int vertices[3];
-		int size = getCell(i, vertices);
-
-		if (size != 3) {
-			cout << "NOT A TRIANGLE CELL! ABORT!";
-			break;
-		}
-
-		float d1, d2, d3;
-		float p0[3];
-		float p1[3];
-		float p2[3];
-
-		getPoint(vertices[0], p0);
-		getPoint(vertices[1], p1);
-
-
-		d1 = sqrt(pow((Point3d(p0).x - 0), 2) + pow((Point3d(p0).y - 0), 2) + pow((Point3d(p0).z - 0), 2)); //Distance From barycenter
-
-		//d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x), 2) + pow((Point3d(p1).y - Point3d(p0).y), 2) + pow((Point3d(p1).z - Point3d(p0).z), 2));
-
-
-		if (d1 > disFromBary)
+		float d = 0;
+		d = sqrt(pow((p[0] - 0), 2) + pow((p[1] - 0), 2) + pow((p[2] - 0), 2)); //Distance From barycenter
+		if (d > disFromBary)
 		{
-			disFromBary = d1;
-			far_x = Point3d(p0).x;
-			far_y = Point3d(p0).y;
-			far_z = Point3d(p0).z;
+			disFromBary = d;
+			far_x = p[0];
+			far_y = p[1];
+			far_z = p[2];
 		}
-
-
 	}
-	for (int i = 0; i < numCells(); i++) {
-		float cellArea = 0;
-		float s = 0;
 
-		int vertices[3];
-		int size = getCell(i, vertices);
+	for (int i = 0; i < numPoints(); i++) {				// Find the point furthest from the previously found point
 
-		float d1, d2;
-		float p0[3];
-		float p1[3];
+		float p[3];
+		getPoint(i, p);
 
+		float d = 0;
 
-		getPoint(vertices[0], p0);
-		getPoint(vertices[1], p1);
+		d = sqrt(pow((p[0] - far_x), 2) + pow((p[1] - far_y), 2) + pow((p[2] - far_z), 2));
 
-
-		d2 = sqrt(pow((Point3d(p0).x - far_x), 2) + pow((Point3d(p0).y - far_y), 2) + pow((Point3d(p0).z - far_z), 2));
-
-
-		//d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x), 2) + pow((Point3d(p1).y - Point3d(p0).y), 2) + pow((Point3d(p1).z - Point3d(p0).z), 2));
-
-		if (d2 > disFromFarthest)
+		if (d > disFromFarthest)
 		{
-			disFromFarthest = d2;
+			disFromFarthest = d;
 		}
 
 	}
-
-	/*cout << far_x;
-	cout << far_y;
-	cout << far_z;
-	cout << disFromFarthest*/
 	diameter = disFromFarthest;
 	return disFromFarthest;
 }
