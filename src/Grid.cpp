@@ -454,7 +454,7 @@ float Grid::calculateDiameter() {
 		getPoint(i, p);
 
 		float d = 0;
-		d = sqrt(pow((p[0] - 0), 2) + pow((p[1] - 0), 2) + pow((p[2] - 0), 2)); //Distance From barycenter
+		d = sqrt(pow(p[0], 2) + pow(p[1], 2) + pow(p[2], 2)); //Distance From barycenter
 		if (d > disFromBary)
 		{
 			disFromBary = d;
