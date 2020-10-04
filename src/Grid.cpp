@@ -1,6 +1,7 @@
 #include "..\header\Grid.h"
 #include <iostream>
 #include <algorithm>
+#include <random>
 
 using namespace std;
 
@@ -424,7 +425,7 @@ float Grid::calculateSphericity() {
 
 	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
 	sphericity = 1 / compactness;
-	return compactness, sphericity;
+	return sphericity;
 }
 
 float Grid::calculateBoundingBoxVol() {
@@ -437,6 +438,167 @@ float Grid::calculateBoundingBoxVol() {
 
 	boundingBoxVolume = s1 * s2 * s3;
 	return boundingBoxVolume;
+}
+
+float Grid::calculateDiameter() {
+
+	float disFromBary = -1;
+	float disFromFarthest = -1;
+	float far_x = 0;
+	float far_y = 0;
+	float far_z = 0;
+
+
+	for (int i = 0; i < numCells(); i++) {
+		float cellArea = 0;
+		float s = 0;
+		Point3d points[3];
+
+		int vertices[3];
+		int size = getCell(i, vertices);
+
+		if (size != 3) {
+			cout << "NOT A TRIANGLE CELL! ABORT!";
+			break;
+		}
+
+		float d1, d2, d3;
+		float p0[3];
+		float p1[3];
+		float p2[3];
+
+		getPoint(vertices[0], p0);
+		getPoint(vertices[1], p1);
+
+
+		d1 = sqrt(pow((Point3d(p0).x - 0), 2) + pow((Point3d(p0).y - 0), 2) + pow((Point3d(p0).z - 0), 2)); //Distance From barycenter
+
+		//d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x), 2) + pow((Point3d(p1).y - Point3d(p0).y), 2) + pow((Point3d(p1).z - Point3d(p0).z), 2));
+
+
+		if (d1 > disFromBary)
+		{
+			disFromBary = d1;
+			far_x = Point3d(p0).x;
+			far_y = Point3d(p0).y;
+			far_z = Point3d(p0).z;
+		}
+
+
+	}
+	for (int i = 0; i < numCells(); i++) {
+		float cellArea = 0;
+		float s = 0;
+
+		int vertices[3];
+		int size = getCell(i, vertices);
+
+		float d1, d2;
+		float p0[3];
+		float p1[3];
+
+
+		getPoint(vertices[0], p0);
+		getPoint(vertices[1], p1);
+
+
+		d2 = sqrt(pow((Point3d(p0).x - far_x), 2) + pow((Point3d(p0).y - far_y), 2) + pow((Point3d(p0).z - far_z), 2));
+
+
+		//d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x), 2) + pow((Point3d(p1).y - Point3d(p0).y), 2) + pow((Point3d(p1).z - Point3d(p0).z), 2));
+
+		if (d2 > disFromFarthest)
+		{
+			disFromFarthest = d2;
+		}
+
+	}
+
+	/*cout << far_x;
+	cout << far_y;
+	cout << far_z;
+	cout << disFromFarthest*/
+	diameter = disFromFarthest;
+	return disFromFarthest;
+}
+
+float Grid::calculateEccentricity() {
+	float majorEigenValue;
+	float minorEigenValue;
+	float ecc;
+	computeCovarianceMatrix();
+
+	Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eig(covarianceMatrix);
+
+
+	majorEigenValue = eig.eigenvalues()[0];
+	minorEigenValue = eig.eigenvalues()[0];
+
+	for (int i = 1; i < 3; i++) {
+		if (majorEigenValue < eig.eigenvalues()[i])
+		{
+			majorEigenValue = eig.eigenvalues()[i];
+		}
+	}
+	for (int i = 1; i < 3; i++) {
+		if (minorEigenValue > eig.eigenvalues()[i])
+		{
+			minorEigenValue = eig.eigenvalues()[i];
+		}
+	}
+
+
+	//cout << abs(majorEigenValue)/abs(minorEigenValue) << endl;
+	ecc = abs(majorEigenValue) / abs(minorEigenValue);
+	eccentricity = ecc;
+
+	return ecc;
+}
+
+double Grid::calculateAngleBetweenPoints() {
+
+
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, numCells());
+	double res;
+	Point3d points[3];
+
+	int vertices[3];
+
+	int size = getCell(dis(gen), vertices);
+
+	for (int i = 0; i < 10; i++) //trial
+	{
+		int size = getCell(dis(gen), vertices);
+
+		float p0[3];
+		float p1[3];
+		float p2[3];
+
+
+		getPoint(vertices[0], p0);
+		getPoint(vertices[1], p1);
+		getPoint(vertices[2], p2);
+
+
+		double ba[3] = { Point3d(p0).x - Point3d(p1).x, Point3d(p0).y - Point3d(p1).y, Point3d(p0).z - Point3d(p1).z };
+		double bc[3] = { Point3d(p2).x - Point3d(p1).x, Point3d(p2).y - Point3d(p1).y, Point3d(p2).z - Point3d(p1).z };
+		//normalizing
+		double baVec = sqrt(ba[0] * ba[0] + ba[1] * ba[1] + ba[2] * ba[2]);
+		double bcVec = sqrt(bc[0] * bc[0] + bc[1] * bc[1] + bc[2] * bc[2]);
+
+		double baNorm[3] = { ba[0] / baVec, ba[1] / baVec, ba[2] / baVec };
+		double bcNorm[3] = { bc[0] / bcVec, bc[1] / bcVec, bc[2] / bcVec };
+
+		//calculating the dot product
+		res = baNorm[0] * bcNorm[0] + baNorm[1] * bcNorm[1] + baNorm[2] * bcNorm[2];
+		cout << acos(res) * 180.0 / M_PI;
+	}
+
+	return acos(res) * 180.0 / M_PI;
+
 }
 
 

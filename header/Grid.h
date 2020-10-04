@@ -26,14 +26,12 @@ public:
 	float calculateSurfaceArea();
 	float calculateEccentricity();
 
-	float calculateBoundedBoxVolume();
+	float calculateBoundingBoxVol();
 	float calculateDiameter();
 
 	float calculateVolume();
 
 	float calculateSphericity();
-
-	float calculateBoundingBoxVol();
 
 	double calculateAngleBetweenPoints();
 
