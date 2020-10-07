@@ -681,14 +681,14 @@ void Grid::calculateD3(int n) {
 
 	// Calculate distance between two random vertices.
 	// The distances are added into the histogram vector D2hist with 10 bins, each bin being 0.15.
-	// Max distance = 1.5?
+	// Max distance = 0.85?
 
 	float area, s, d1, d2, d3;
 	int count = 0;
 
 	// Maximum possible distance between two points divided by the number of bins
 	// gives the size of a single bin
-	float binSize = 1.0 / 10.0;
+	float binSize = 0.85 / 10.0;
 
 	int k = pow(n, 1.0 / 3.0);
 
