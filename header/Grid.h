@@ -21,6 +21,11 @@ public:
 		pointsY.resize(P);
 		pointsZ.resize(P);
 		cells.resize(3 * C);
+
+		for (int i = 0; i < 10; i++) {
+			D1hist.push_back(0);
+			D2hist.push_back(0);
+		}
 	}
 
 	float calculateSurfaceArea();
@@ -114,6 +119,16 @@ public:
 	}
 	void PCARotation();
 
+	void calculateD1();
+	vector<float> getD1hist() {
+		return D1hist;
+	}
+
+	void calculateD2(int n);
+	vector<float> getD2hist() {
+		return D2hist;
+	}
+
 
 protected:
 
@@ -139,6 +154,8 @@ protected:
 	float				boundingBoxVolume;
 	float				diameter;
 	float				eccentricity;
+	vector<float>		D1hist;
+	vector<float>		D2hist;
 
 };
 

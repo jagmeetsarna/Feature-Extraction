@@ -167,6 +167,7 @@
     <ClInclude Include="..\header\Point3d.h" />
     <ClInclude Include="..\header\ScalarAttributes.h" />
     <ClInclude Include="..\header\VectorAttributes.h" />
+    <ClInclude Include="HistogramArray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
