@@ -28,6 +28,7 @@ public:
 			D2hist.push_back(0);
 			D3hist.push_back(0);
 			D4hist.push_back(0);
+			A3hist.push_back(0);
 		}
 	}
 
@@ -136,6 +137,10 @@ public:
 	vector<float> getD3hist() {
 		return D3hist;
 	}
+	void calculateAngleBetweenPoints(int n);
+	vector<float> getA3hist() {
+		return A3hist;
+	}
 
 
 protected:
@@ -162,7 +167,7 @@ protected:
 	float				boundingBoxVolume;
 	float				diameter;
 	float				eccentricity;
-	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist;
+	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist,A3hist;
 
 };
 
