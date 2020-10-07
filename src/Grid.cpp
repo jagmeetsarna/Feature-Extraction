@@ -582,7 +582,14 @@ void Grid::calculateD1() {
 
 		distance = sqrt(pow(pointsX[i], 2) + pow(pointsY[i], 2) + pow(pointsZ[i], 2));
 
-		if (distance < binSize)											D1hist[0] += 1;
+		for (int b = 0; b < 10; b++) {
+			if (distance >= (b * binSize) && distance < (b + 1) * binSize) {
+				D1hist[b] += 1;
+				break;
+			}
+		}
+
+		/*if (distance < binSize)											D1hist[0] += 1;
 		else if (distance >= binSize && distance < binSize * 2)			D1hist[1] += 1;
 		else if (distance >= binSize * 2 && distance < binSize * 3)		D1hist[2] += 1;
 		else if (distance >= binSize * 3 && distance < binSize * 4)		D1hist[3] += 1;
@@ -591,7 +598,7 @@ void Grid::calculateD1() {
 		else if (distance >= binSize * 6 && distance < binSize * 7)		D1hist[6] += 1;
 		else if (distance >= binSize * 7 && distance < binSize * 8)		D1hist[7] += 1;
 		else if (distance >= binSize * 8 && distance < binSize * 9)		D1hist[8] += 1;
-		else if (distance >= binSize * 9)								D1hist[9] += 1;
+		else if (distance >= binSize * 9)								D1hist[9] += 1;*/
 
 		count += 1;
 
@@ -611,7 +618,7 @@ void Grid::calculateD2(int n) {
 
 	// Calculate distance between two random vertices.
 	// The distances are added into the histogram vector D2hist with 10 bins, each bin being 0.15.
-	// Max distance = 1.5?
+	// Max distance = 1.75?
 
 	float distance;
 	int count = 0;
@@ -637,7 +644,14 @@ void Grid::calculateD2(int n) {
 			distance = sqrt(pow((pointsX[p1] - pointsX[p2]), 2) + pow((pointsY[p1] - pointsY[p2]), 2)
 				+ pow((pointsZ[p1], pointsZ[p2]), 2));
 
-			if (distance < binSize)											D2hist[0] += 1;
+			for (int b = 0; b < 10; b++) {
+				if (distance >= (b * binSize) && distance < (b + 1) * binSize) {
+					D2hist[b] += 1;
+					break;
+				}
+			}
+
+			/*if (distance < binSize)											D2hist[0] += 1;
 			else if (distance >= binSize && distance < binSize * 2)			D2hist[1] += 1;
 			else if (distance >= binSize * 2 && distance < binSize * 3)		D2hist[2] += 1;
 			else if (distance >= binSize * 3 && distance < binSize * 4)		D2hist[3] += 1;
@@ -646,7 +660,7 @@ void Grid::calculateD2(int n) {
 			else if (distance >= binSize * 6 && distance < binSize * 7)		D2hist[6] += 1;
 			else if (distance >= binSize * 7 && distance < binSize * 8)		D2hist[7] += 1;
 			else if (distance >= binSize * 8 && distance < binSize * 9)		D2hist[8] += 1;
-			else if (distance >= binSize * 9)								D2hist[9] += 1;
+			else if (distance >= binSize * 9)								D2hist[9] += 1;*/
 
 			count += 1;
 		}
@@ -661,9 +675,81 @@ void Grid::calculateD2(int n) {
 	for (int i = 0; i < 10; i++) {
 		D2hist[i] = D2hist[i] / count;
 	}
+}
 
+void Grid::calculateD3(int n) {
 
+	// Calculate distance between two random vertices.
+	// The distances are added into the histogram vector D2hist with 10 bins, each bin being 0.15.
+	// Max distance = 1.5?
 
+	float area, s, d1, d2, d3;
+	int count = 0;
+
+	// Maximum possible distance between two points divided by the number of bins
+	// gives the size of a single bin
+	float binSize = 1.0 / 10.0;
+
+	int k = pow(n, 1.0 / 3.0);
+
+	for (int i = 0; i < k; i++) {
+
+		int p1 = rand() % numPoints();
+
+		for (int j = 0; j < k; j++) {
+
+			int p2 = rand() % numPoints();
+			if (p1 == p2) {
+				continue;											// do not allow equal points;
+			}
+
+			for (int l = 0; l < k; l++) {
+
+				int p3 = rand() % numPoints();
+				if (p1 == p3 || p2 == p3) {
+					continue;										// do not allow equal points;
+				}
+
+				d1 = sqrt(pow((pointsX[p2] - pointsX[p1]),2) + pow((pointsY[p2] - pointsY[p1]),2) + pow((pointsZ[p2] - pointsZ[p1]),2));
+				d2 = sqrt(pow((pointsX[p3] - pointsX[p2]),2) + pow((pointsY[p3] - pointsY[p2]),2) + pow((pointsZ[p3] - pointsZ[p2]),2));
+				d3 = sqrt(pow((pointsX[p1] - pointsX[p3]),2) + pow((pointsY[p1] - pointsY[p3]),2) + pow((pointsZ[p1] - pointsZ[p3]),2));
+				s = (d1 + d2 + d3) / 2;
+
+				area = sqrt(s * ((s - d1) * (s - d2) * (s - d3)));
+				area = sqrt(area);
+
+				for (int b = 0; b < 10; b++) {
+					if (area >= (b * binSize) && area < (b + 1) * binSize) {
+						D3hist[b] += 1;
+						break;
+					}
+				}
+
+				/*if (area < binSize)										D3hist[0] += 1;
+				else if (area >= binSize && area < binSize * 2)			D3hist[1] += 1;
+				else if (area >= binSize * 2 && area < binSize * 3)		D3hist[2] += 1;
+				else if (area >= binSize * 3 && area < binSize * 4)		D3hist[3] += 1;
+				else if (area >= binSize * 4 && area < binSize * 5)		D3hist[4] += 1;
+				else if (area >= binSize * 5 && area < binSize * 6)		D3hist[5] += 1;
+				else if (area >= binSize * 6 && area < binSize * 7)		D3hist[6] += 1;
+				else if (area >= binSize * 7 && area < binSize * 8)		D3hist[7] += 1;
+				else if (area >= binSize * 8 && area < binSize * 9)		D3hist[8] += 1;
+				else if (area >= binSize * 9)							D3hist[9] += 1;*/
+
+				count += 1;
+			}
+		}
+	}
+
+	// Output to debug
+	for (int i = 0; i < 10; i++) {
+		cout << D3hist[i] << endl;
+	}
+
+	// Normalize the histogram
+	for (int i = 0; i < 10; i++) {
+		D3hist[i] = D3hist[i] / count;
+	}
 }
 
 

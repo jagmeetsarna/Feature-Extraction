@@ -197,6 +197,13 @@ int main(int argc, char* argv[])
             cout << hist2[i] << endl;
         }
 
+        cout << "D3: " << endl;
+        grid->calculateD3(1000000);
+        vector<float> hist3 = grid->getD3hist();
+        for (int i = 0; i < 10; i++) {
+            cout << hist3[i] << endl;
+        }
+
     }
     
     return 0;

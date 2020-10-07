@@ -23,8 +23,11 @@ public:
 		cells.resize(3 * C);
 
 		for (int i = 0; i < 10; i++) {
+			A1hist.push_back(0);
 			D1hist.push_back(0);
 			D2hist.push_back(0);
+			D3hist.push_back(0);
+			D4hist.push_back(0);
 		}
 	}
 
@@ -129,6 +132,11 @@ public:
 		return D2hist;
 	}
 
+	void calculateD3(int n);
+	vector<float> getD3hist() {
+		return D3hist;
+	}
+
 
 protected:
 
@@ -154,8 +162,7 @@ protected:
 	float				boundingBoxVolume;
 	float				diameter;
 	float				eccentricity;
-	vector<float>		D1hist;
-	vector<float>		D2hist;
+	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist;
 
 };
 
