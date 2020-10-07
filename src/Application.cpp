@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
         grid = std::get<0>(tup);
 
 
-        cout << "Surface Area: ";
+       /* cout << "Surface Area: ";
         cout << grid->calculateSurfaceArea() << endl;
 
         cout << "Volume: ";
@@ -181,7 +181,21 @@ int main(int argc, char* argv[])
 
 
         cout << "Eccentricity: ";
-        cout << grid->calculateEccentricity() << endl;
+        cout << grid->calculateEccentricity() << endl;*/
+
+        cout << "D1: " << endl;
+        grid->calculateD1();
+        vector<float> hist1 = grid->getD1hist();
+        for (int i = 0; i < 10; i++) {
+            cout << hist1[i] << endl;
+        }
+
+        cout << "D2: " << endl;
+        grid->calculateD2(1000000);
+        vector<float> hist2 = grid->getD2hist();
+        for (int i = 0; i < 10; i++) {
+            cout << hist2[i] << endl;
+        }
 
     }
     

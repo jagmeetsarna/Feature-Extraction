@@ -562,5 +562,109 @@ double Grid::calculateAngleBetweenPoints() {
 
 }
 
+void Grid::calculateD1() {
+
+	// Calculates the distance between the barycenter and a random vertex.
+	// The distances are added into a histogram (D1hist) with 10 bins, each bin being distance 0.1.
+	// Max distance = 1?
+
+
+	float distance;
+	int count = 0;
+
+	// Maximum possible distance between two points divided by the number of bins
+	// gives the size of a single bin
+	float binSize = 1.0 / 10.0;
+
+	for (int i = 0; i < numPoints(); i++) {
+
+		Point3d p;
+
+		distance = sqrt(pow(pointsX[i], 2) + pow(pointsY[i], 2) + pow(pointsZ[i], 2));
+
+		if (distance < binSize)											D1hist[0] += 1;
+		else if (distance >= binSize && distance < binSize * 2)			D1hist[1] += 1;
+		else if (distance >= binSize * 2 && distance < binSize * 3)		D1hist[2] += 1;
+		else if (distance >= binSize * 3 && distance < binSize * 4)		D1hist[3] += 1;
+		else if (distance >= binSize * 4 && distance < binSize * 5)		D1hist[4] += 1;
+		else if (distance >= binSize * 5 && distance < binSize * 6)		D1hist[5] += 1;
+		else if (distance >= binSize * 6 && distance < binSize * 7)		D1hist[6] += 1;
+		else if (distance >= binSize * 7 && distance < binSize * 8)		D1hist[7] += 1;
+		else if (distance >= binSize * 8 && distance < binSize * 9)		D1hist[8] += 1;
+		else if (distance >= binSize * 9)								D1hist[9] += 1;
+
+		count += 1;
+
+	}
+
+	for (int i = 0; i < 10; i++) {
+		cout << D1hist[i] << endl;
+	}
+
+	// Normalize the histogram
+	for (int i = 0; i < 10; i++) {
+		D1hist[i] = D1hist[i] / count;
+	}
+}
+
+void Grid::calculateD2(int n) {
+
+	// Calculate distance between two random vertices.
+	// The distances are added into the histogram vector D2hist with 10 bins, each bin being 0.15.
+	// Max distance = 1.5?
+
+	float distance;
+	int count = 0;
+
+	// Maximum possible distance between two points divided by the number of bins
+	// gives the size of a single bin
+	float binSize = 1.75 / 10.0;
+
+	int k = pow(n, 1.0/2.0);
+
+	for (int i = 0; i < k; i++) {
+
+		int p1 = rand() % numPoints();
+
+		for (int j = 0; j < k; j++) {
+
+			int p2 = rand() % numPoints();
+
+			if (p1 == p2) {
+				continue;										// do not allow equal points;
+			}
+
+			distance = sqrt(pow((pointsX[p1] - pointsX[p2]), 2) + pow((pointsY[p1] - pointsY[p2]), 2)
+				+ pow((pointsZ[p1], pointsZ[p2]), 2));
+
+			if (distance < binSize)											D2hist[0] += 1;
+			else if (distance >= binSize && distance < binSize * 2)			D2hist[1] += 1;
+			else if (distance >= binSize * 2 && distance < binSize * 3)		D2hist[2] += 1;
+			else if (distance >= binSize * 3 && distance < binSize * 4)		D2hist[3] += 1;
+			else if (distance >= binSize * 4 && distance < binSize * 5)		D2hist[4] += 1;
+			else if (distance >= binSize * 5 && distance < binSize * 6)		D2hist[5] += 1;
+			else if (distance >= binSize * 6 && distance < binSize * 7)		D2hist[6] += 1;
+			else if (distance >= binSize * 7 && distance < binSize * 8)		D2hist[7] += 1;
+			else if (distance >= binSize * 8 && distance < binSize * 9)		D2hist[8] += 1;
+			else if (distance >= binSize * 9)								D2hist[9] += 1;
+
+			count += 1;
+		}
+	}
+
+	// Output to debug
+	for (int i = 0; i < 10; i++) {
+		cout << D2hist[i] << endl;
+	}
+
+	// Normalize the histogram
+	for (int i = 0; i < 10; i++) {
+		D2hist[i] = D2hist[i] / count;
+	}
+
+
+
+}
+
 
 
