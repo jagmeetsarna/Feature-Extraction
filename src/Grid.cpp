@@ -516,51 +516,80 @@ float Grid::calculateEccentricity() {
 	return ecc;
 }
 
-double Grid::calculateAngleBetweenPoints() {
+void Grid::calculateAngleBetweenPoints(int n) {
 
 
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(0, numCells());
 	double res;
-	Point3d points[3];
 
-	int vertices[3];
+	int count = 0;
 
-	int size = getCell(dis(gen), vertices);
+	float angle;
+	// Maximum possible distance between two points divided by the number of bins
+	// gives the size of a single bin
+	float binSize = 359.0 / 10.0;
 
-	for (int i = 0; i < 10; i++) //trial
-	{
-		int size = getCell(dis(gen), vertices);
+	int k = pow(n, 1.0 / 3.0);
 
-		float p0[3];
-		float p1[3];
-		float p2[3];
+	for (int i = 0; i < k; i++) {
+
+		int p1 = rand() % numPoints();
+
+		for (int j = 0; j < k; j++) {
+
+			int p2 = rand() % numPoints();
+			if (p1 == p2) {
+				continue;											// do not allow equal points;
+			}
+
+			for (int l = 0; l < k; l++) {
+
+				int p3 = rand() % numPoints();
+
+				if (p1 == p3 || p2 == p3)
+				{
+					continue;										// do not allow equal points;
+				}
+
+				double ba[3] = { pointsX[p1] - pointsX[p2], pointsY[p1] - pointsY[p2], pointsZ[p1] - pointsZ[p2] };
+				
+				double bc[3] = { pointsX[p3] - pointsX[p2], pointsY[p3] - pointsY[p2], pointsZ[p3] - pointsZ[p2] };
+				
+				//normalizing
+				double baVec = sqrt(ba[0] * ba[0] + ba[1] * ba[1] + ba[2] * ba[2]);
+				double bcVec = sqrt(bc[0] * bc[0] + bc[1] * bc[1] + bc[2] * bc[2]);
+				
+				double baNorm[3] = { ba[0] / baVec, ba[1] / baVec, ba[2] / baVec };
+				double bcNorm[3] = { bc[0] / bcVec, bc[1] / bcVec, bc[2] / bcVec };
+				
+				//calculating the dot product
+				res = baNorm[0] * bcNorm[0] + baNorm[1] * bcNorm[1] + baNorm[2] * bcNorm[2];
+				angle = acos(res) * 180.0 / M_PI;
 
 
-		getPoint(vertices[0], p0);
-		getPoint(vertices[1], p1);
-		getPoint(vertices[2], p2);
+				for (int b = 0; b < 10; b++) {
+					if (angle >= (b * binSize) && angle < (b + 1) * binSize) {
+						A3hist[b] += 1;
+	
+						break;
+					}
 
+				}
 
-		double ba[3] = { Point3d(p0).x - Point3d(p1).x, Point3d(p0).y - Point3d(p1).y, Point3d(p0).z - Point3d(p1).z };
-		double bc[3] = { Point3d(p2).x - Point3d(p1).x, Point3d(p2).y - Point3d(p1).y, Point3d(p2).z - Point3d(p1).z };
-		//normalizing
-		double baVec = sqrt(ba[0] * ba[0] + ba[1] * ba[1] + ba[2] * ba[2]);
-		double bcVec = sqrt(bc[0] * bc[0] + bc[1] * bc[1] + bc[2] * bc[2]);
-
-		double baNorm[3] = { ba[0] / baVec, ba[1] / baVec, ba[2] / baVec };
-		double bcNorm[3] = { bc[0] / bcVec, bc[1] / bcVec, bc[2] / bcVec };
-
-		//calculating the dot product
-		res = baNorm[0] * bcNorm[0] + baNorm[1] * bcNorm[1] + baNorm[2] * bcNorm[2];
-		cout << acos(res) * 180.0 / M_PI;
+				count += 1;
+			}
+		}
 	}
+		// Output to debug
+		for (int i = 0; i < 10; i++) {
+			cout << A3hist[i] << endl;
+		}
 
-	return acos(res) * 180.0 / M_PI;
+		// Normalize the histogram
+		for (int i = 0; i < 10; i++) {
+			A3hist[i] = A3hist[i] / count;
+		}
 
-}
+	}
 
 void Grid::calculateD1() {
 
