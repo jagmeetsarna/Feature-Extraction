@@ -781,5 +781,84 @@ void Grid::calculateD3(int n) {
 	}
 }
 
+void Grid::calculateD4(int n) {
+
+	// Calculate volume between four random vertices.
+	// The volumes are added into the histogram vector D4hist with 10 bins, each bin being 0.033.
+	// Max volume = 0.33?
+
+	float volume;
+	int count = 0;
+
+	// Maximum possible distance between two points divided by the number of bins
+	// gives the size of a single bin
+	float binSize = 0.1 / 10.0;
+
+	int k = pow(n, 1.0 / 4.0);
+
+	for (int i = 0; i < k; i++) {
+
+		int p1 = rand() % numPoints();
+
+		for (int j = 0; j < k; j++) {
+
+			int p2 = rand() % numPoints();
+
+			if (p1 == p2) {
+				continue;										// do not allow equal points;
+			}
+
+			for (int l = 0; l < k; l++)
+			{
+				int p3 = rand() % numPoints();
+
+				if (p3 == p1 || p3 == p2)
+					continue;
+
+				for (int m = 0; m < k; m++)
+				{
+					int p4 = rand() % numPoints();
+
+					if (p4 == p1 || p4 == p2 || p4 == p3)
+						continue;
+
+					float* temp = new float[3];
+					getPoint(p1, temp);
+					Point3d P1 = Point3d((const float*)temp);
+					getPoint(p2, temp);
+					Point3d P2 = Point3d((const float*)temp);
+					getPoint(p3, temp);
+					Point3d P3 = Point3d((const float*)temp);
+					getPoint(p4, temp);
+					Point3d P4 = Point3d((const float*)temp);
+					delete[] temp;
+
+					Point3d numerator = (P1 - P4).dot((P2 - P4).cross(P3 - P4));
+					volume = numerator.norm() / 6.0f;
+
+					for (int b = 0; b < 10; b++) {
+						if (volume >= (b * binSize) && volume < (b + 1) * binSize) {
+							D4hist[b] += 1;
+							break;
+						}
+					}
+
+					count += 1;
+				}
+			}
+		}
+	}
+
+	// Output to debug
+	for (int i = 0; i < 10; i++) {
+		cout << D4hist[i] << endl;
+	}
+
+	// Normalize the histogram
+	for (int i = 0; i < 10; i++) {
+		D4hist[i] = D4hist[i] / count;
+	}
+}
+
 
 

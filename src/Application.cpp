@@ -203,12 +203,19 @@ int main(int argc, char* argv[])
         for (int i = 0; i < 10; i++) {
             cout << hist3[i] << endl;
         }
+
+        cout << "D4: " << endl;
+        grid->calculateD4(1000000);
+        vector<float> hist4 = grid->getD4hist();
+        for (int i = 0; i < 10; i++) {
+            cout << hist4[i] << endl;
+        }
         
         cout << "A3: " << endl;
         grid->calculateAngleBetweenPoints(1000000);
-        vector<float> hist4 = grid->getA3hist();
+        vector<float> hist5 = grid->getA3hist();
         for (int i = 0; i < 10; i++) {
-         cout << hist4[i] << endl;
+         cout << hist5[i] << endl;
      }
         
 

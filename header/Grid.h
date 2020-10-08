@@ -137,6 +137,12 @@ public:
 	vector<float> getD3hist() {
 		return D3hist;
 	}
+
+	void calculateD4(int n);
+	vector<float> getD4hist() {
+		return D4hist;
+	}
+
 	void calculateAngleBetweenPoints(int n);
 	vector<float> getA3hist() {
 		return A3hist;
