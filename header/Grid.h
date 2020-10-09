@@ -143,7 +143,7 @@ public:
 		return D4hist;
 	}
 
-	void calculateAngleBetweenPoints(int n);
+	void calculateA3(int n);
 	vector<float> getA3hist() {
 		return A3hist;
 	}

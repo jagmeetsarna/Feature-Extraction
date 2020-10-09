@@ -516,7 +516,7 @@ float Grid::calculateEccentricity() {
 	return ecc;
 }
 
-void Grid::calculateAngleBetweenPoints(int n) {
+void Grid::calculateA3(int n) {
 
 
 	double res;
@@ -571,7 +571,7 @@ void Grid::calculateAngleBetweenPoints(int n) {
 						A3hist[b] += 1;
 	
 						break;
-					}
+					} else if (angle >= 10 * binSize) A3hist[9] += 1;
 
 				}
 
@@ -615,7 +615,7 @@ void Grid::calculateD1() {
 			if (distance >= (b * binSize) && distance < (b + 1) * binSize) {
 				D1hist[b] += 1;
 				break;
-			}
+			} else if (distance >= 10 * binSize) D1hist[9] += 1;
 		}
 
 		/*if (distance < binSize)											D1hist[0] += 1;
@@ -677,7 +677,7 @@ void Grid::calculateD2(int n) {
 				if (distance >= (b * binSize) && distance < (b + 1) * binSize) {
 					D2hist[b] += 1;
 					break;
-				}
+				} else if (distance >= 10 * binSize) D2hist[9] += 1;
 			}
 
 			/*if (distance < binSize)											D2hist[0] += 1;
@@ -751,7 +751,7 @@ void Grid::calculateD3(int n) {
 					if (area >= (b * binSize) && area < (b + 1) * binSize) {
 						D3hist[b] += 1;
 						break;
-					}
+					} else if (area >= 10 * binSize) D3hist[9] += 1;
 				}
 
 				/*if (area < binSize)										D3hist[0] += 1;
@@ -792,7 +792,7 @@ void Grid::calculateD4(int n) {
 
 	// Maximum possible distance between two points divided by the number of bins
 	// gives the size of a single bin
-	float binSize = 0.1 / 10.0;
+	float binSize = 0.33 / 10.0;
 
 	int k = pow(n, 1.0 / 4.0);
 
@@ -835,12 +835,13 @@ void Grid::calculateD4(int n) {
 
 					Point3d numerator = (P1 - P4).dot((P2 - P4).cross(P3 - P4));
 					volume = numerator.norm() / 6.0f;
+					volume = pow(volume, 1.0 / 3.0);
 
 					for (int b = 0; b < 10; b++) {
 						if (volume >= (b * binSize) && volume < (b + 1) * binSize) {
 							D4hist[b] += 1;
 							break;
-						}
+						} else if (volume >= 10 * binSize) D4hist[9] += 1;
 					}
 
 					count += 1;

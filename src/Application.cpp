@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
         }
         
         cout << "A3: " << endl;
-        grid->calculateAngleBetweenPoints(1000000);
+        grid->calculateA3(1000000);
         vector<float> hist5 = grid->getA3hist();
         for (int i = 0; i < 10; i++) {
          cout << hist5[i] << endl;
