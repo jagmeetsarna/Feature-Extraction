@@ -148,9 +148,63 @@ int main(int argc, char* argv[])
 {
     string input;
 
+    cout << "Please specify the folder to extract the features from" << endl;
+    cin >> input;
+
+    fstream filtout;
+    filtout.open("output.csv", ios::out);
+    filtout << "sep=;" << endl;
+
+    for (const auto& entry : fs::directory_iterator(input))
+    {
+        string folder = entry.path().string();
+        cout << folder << endl;
+        for (const auto& fl : fs::directory_iterator(folder + "/"))
+        {
+            string file = fl.path().string();
+            string suffix = ".off";
+            if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
+                continue;
+            cout << file << endl;
+
+            filtout << file << ";";
+
+            grid = std::get<0>(openFile(file));
+            
+            grid->calculateD1();
+            vector<float> hist1 = grid->getD1hist();
+            for (int i = 0; i < 10; i++)
+                filtout << hist1[i] << ";";
+
+            grid->calculateD2(1000000);
+            vector<float> hist2 = grid->getD2hist();
+            for (int i = 0; i < 10; i++)
+                filtout << hist2[i] << ";";
+
+            grid->calculateD3(1000000);
+            vector<float> hist3 = grid->getD3hist();
+            for (int i = 0; i < 10; i++)
+                filtout << hist3[i] << ";";
+
+            grid->calculateD4(1000000);
+            vector<float> hist4 = grid->getD4hist();
+            for (int i = 0; i < 10; i++)
+                filtout << hist4[i] << ";";
+
+            grid->calculateA3(1000000);
+            vector<float> hist5 = grid->getA3hist();
+            for (int i = 0; i < 10; i++)
+                filtout << hist5[i] << ";";
+
+            filtout << endl;
+            delete(grid);
+        }
+    }
+
+    filtout.close();
+
     for (int i = 0; i < 3; i++) {
 
-        string input;
         cout << "Please specify the file you want to view:" << endl;
         cin >> input;
 
