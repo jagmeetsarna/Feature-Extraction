@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     fstream filtout;
     filtout.open("output.csv", ios::out);
     filtout << "sep=;" << endl;
-    filtout << "D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10";
+    filtout << "name;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10" << endl;
 
     for (const auto& entry : fs::directory_iterator(input))
     {
@@ -172,11 +172,11 @@ int main(int argc, char* argv[])
 
             if (file.find("/") <= size(file))
             {
-                filtout << file.substr(file.find_last_of("/") + 1);
+                filtout << file.substr(file.find_last_of("/") + 1) << ";";
             }
             else
             {
-                filtout << file.substr(file.find_last_of("\\") + 1);
+                filtout << file.substr(file.find_last_of("\\") + 1) << ";";
             }
 
             grid = std::get<0>(openFile(file));
