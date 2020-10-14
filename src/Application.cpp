@@ -5,6 +5,7 @@
 #include <iostream>
 #include <io.h>
 #include <filesystem>
+#include <conio.h>
 
 #include <fstream>
 #include <filesystem>
@@ -21,8 +22,12 @@ void loadFilter();
 
 string fileName;
 
+vector<tuple<string, string, vector<float>>> feature_vectors;
+
 int drawing_style = 0;
 const int FILTER_SIZE = 250;
+
+int N = 1000000;                            // Number of computations per feature
 
 
 Grid* grid = 0;
@@ -144,146 +149,117 @@ void loadFilter()
     }
 }
 
+void loadDB() {
+
+    fstream fin;
+
+    string file = "output.csv";
+    fin.open(file, ios::in);
+
+    vector<string> row;
+    vector<float> features;
+    tuple<string, string, vector<float>> tup;
+    string line, word, temp, name, shape_class;
+    float val;
+    getline(fin, line);
+    getline(fin, line);
+
+    while (getline(fin, line)) {
+        row.clear();
+        features.clear();
+
+        stringstream s(line);
+
+        while (getline(s, word, ';')) {
+            row.push_back(word);
+        }
+        name = row[0];
+        shape_class = row[1];
+
+        for (int i = 2; i < row.size(); i++) {
+            // cout << row[i] << endl;
+            features.push_back(stof(row[i]));
+        }
+
+        tuple tup = make_tuple(name, shape_class, features);
+        feature_vectors.push_back(tup);
+    }
+}
+
+void startNewQuery() {
+
+    cout << "Please specify the query file::" << endl;
+    string file_name;
+    cin >> file_name;
+
+    vector<float> query_vector;
+
+    tuple tup = openFile(file_name);
+    Grid* query_grid = get<0>(tup);
+
+    float s = query_grid->calculateSurfaceArea();
+    float v = query_grid->calculateVolume();
+    float b = query_grid->calculateBoundingBoxVol();
+    float e = query_grid->calculateEccentricity();
+    float d = query_grid->calculateDiameter();
+    float r = query_grid->calculateSphericity();
+
+    query_grid->calculateD1();
+    query_grid->calculateD2(N);
+    query_grid->calculateD3(N);
+    query_grid->calculateD4(N);
+    query_grid->calculateA3(N);
+
+    query_vector.push_back(s);
+    query_vector.push_back(v);
+    query_vector.push_back(b);
+    query_vector.push_back(e);
+    query_vector.push_back(d);
+    query_vector.push_back(r);
+
+    for (int i = 0; i < size(query_grid->D1hist); i++) {
+        query_vector.push_back(query_grid->D1hist[i]);
+    }
+    for (int i = 0; i < size(query_grid->D2hist); i++) {
+        query_vector.push_back(query_grid->D2hist[i]);
+    }
+    for (int i = 0; i < size(query_grid->D3hist); i++) {
+        query_vector.push_back(query_grid->D3hist[i]);
+    }
+    for (int i = 0; i < size(query_grid->D4hist); i++) {
+        query_vector.push_back(query_grid->D4hist[i]);
+    }
+    for (int i = 0; i < size(query_grid->A3hist); i++) {
+        query_vector.push_back(query_grid->A3hist[i]);
+    }
+
+    for (int i = 0; i < query_vector.size(); i++) {
+        cout << query_vector[i] << endl;
+    }
+
+}
+
 int main(int argc, char* argv[])
 {
-    string input;
 
-    cout << "Please specify the folder to extract the features from" << endl;
-    cin >> input;
+    cout << "Loading default data base..." << endl;
+    loadDB();
 
-    fstream filtout;
-    filtout.open("output.csv", ios::out);
-    filtout << "sep=;" << endl;
-    filtout << "name;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10" << endl;
+    cout << "Press q to start a new query." << endl;
 
-    for (const auto& entry : fs::directory_iterator(input))
-    {
-        string folder = entry.path().string();
-        cout << folder << endl;
-        for (const auto& fl : fs::directory_iterator(folder + "/"))
-        {
-            string file = fl.path().string();
-            string suffix = ".off";
-            if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
-                continue;
-            cout << file << endl;
+    cout << "Press l to load a new data base." << endl;
 
-            
+    char input = _getch();
 
-            if (file.find("/") <= size(file))
-            {
-                filtout << file.substr(file.find_last_of("/") + 1) << ";";
-            }
-            else
-            {
-                filtout << file.substr(file.find_last_of("\\") + 1) << ";";
-            }
-
-            grid = std::get<0>(openFile(file));
-            
-            grid->calculateD1();
-            vector<float> hist1 = grid->getD1hist();
-            for (int i = 0; i < 10; i++)
-                filtout << hist1[i] << ";";
-
-            grid->calculateD2(1000000);
-            vector<float> hist2 = grid->getD2hist();
-            for (int i = 0; i < 10; i++)
-                filtout << hist2[i] << ";";
-
-            grid->calculateD3(1000000);
-            vector<float> hist3 = grid->getD3hist();
-            for (int i = 0; i < 10; i++)
-                filtout << hist3[i] << ";";
-
-            grid->calculateD4(1000000);
-            vector<float> hist4 = grid->getD4hist();
-            for (int i = 0; i < 10; i++)
-                filtout << hist4[i] << ";";
-
-            grid->calculateA3(1000000);
-            vector<float> hist5 = grid->getA3hist();
-            for (int i = 0; i < 10; i++)
-                filtout << hist5[i] << ";";
-
-            filtout << endl;
-            delete(grid);
-        }
+    if (input == 'q') {
+        startNewQuery();
     }
+    else if (input == 'l') {
 
-    filtout.close();
-
-    for (int i = 0; i < 3; i++) {
-
-        cout << "Please specify the file you want to view:" << endl;
+        cout << "Please specify the new database folder" << endl;
         cin >> input;
-
-        std::tuple<Grid*, FilterItem> tup = openFile(input);
-        grid = std::get<0>(tup);
-
-
-       /* cout << "Surface Area: ";
-        cout << grid->calculateSurfaceArea() << endl;
-
-        cout << "Volume: ";
-        cout << grid->calculateVolume() << endl;
-
-        //cout << "Compactness: ";
-        float compactness;
-        float sphericity;
-        sphericity = grid->calculateSphericity();
-        //cout << grid.compactness << endl;
-
-        cout << "Sphericity: ";
-        cout << sphericity << endl;
-
-        cout << "Bounding Box Volume: ";
-        cout << grid->calculateBoundingBoxVol() << endl;
-
-        cout << "Diameter: ";
-        cout << grid->calculateDiameter() << endl;
-
-
-        cout << "Eccentricity: ";
-        cout << grid->calculateEccentricity() << endl;*/
-
-        cout << "D1: " << endl;
-        grid->calculateD1();
-        vector<float> hist1 = grid->getD1hist();
-        for (int i = 0; i < 10; i++) {
-            cout << hist1[i] << endl;
-        }
-
-        cout << "D2: " << endl;
-        grid->calculateD2(1000000);
-        vector<float> hist2 = grid->getD2hist();
-        for (int i = 0; i < 10; i++) {
-            cout << hist2[i] << endl;
-        }
-
-        cout << "D3: " << endl;
-        grid->calculateD3(1000000);
-        vector<float> hist3 = grid->getD3hist();
-        for (int i = 0; i < 10; i++) {
-            cout << hist3[i] << endl;
-        }
-
-        cout << "D4: " << endl;
-        grid->calculateD4(1000000);
-        vector<float> hist4 = grid->getD4hist();
-        for (int i = 0; i < 10; i++) {
-            cout << hist4[i] << endl;
-        }
-        
-        cout << "A3: " << endl;
-        grid->calculateA3(1000000);
-        vector<float> hist5 = grid->getA3hist();
-        for (int i = 0; i < 10; i++) {
-         cout << hist5[i] << endl;
-     }
-        
-
     }
+
     
     return 0;
 }

@@ -580,9 +580,9 @@ void Grid::calculateA3(int n) {
 		}
 	}
 		// Output to debug
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			cout << A3hist[i] << endl;
-		}
+		}*/
 
 		// Normalize the histogram
 		for (int i = 0; i < 10; i++) {
@@ -633,9 +633,9 @@ void Grid::calculateD1() {
 
 	}
 
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		cout << D1hist[i] << endl;
-	}
+	}*/
 
 	// Normalize the histogram
 	for (int i = 0; i < 10; i++) {
@@ -696,9 +696,9 @@ void Grid::calculateD2(int n) {
 	}
 
 	// Output to debug
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		cout << D2hist[i] << endl;
-	}
+	}*/
 
 	// Normalize the histogram
 	for (int i = 0; i < 10; i++) {
@@ -771,9 +771,9 @@ void Grid::calculateD3(int n) {
 	}
 
 	// Output to debug
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		cout << D3hist[i] << endl;
-	}
+	}*/
 
 	// Normalize the histogram
 	for (int i = 0; i < 10; i++) {
@@ -851,9 +851,9 @@ void Grid::calculateD4(int n) {
 	}
 
 	// Output to debug
-	for (int i = 0; i < 10; i++) {
+	/*for (int i = 0; i < 10; i++) {
 		cout << D4hist[i] << endl;
-	}
+	}*/
 
 	// Normalize the histogram
 	for (int i = 0; i < 10; i++) {

@@ -42,8 +42,6 @@ public:
 
 	float calculateSphericity();
 
-	double calculateAngleBetweenPoints();
-
 
 
 	void setExtremes(float mix, float max, float miy, float may, float miz, float maz) {
@@ -148,6 +146,16 @@ public:
 		return A3hist;
 	}
 
+	float				surfaceArea;
+	float				volume;
+	float				compactness;
+	float				sphericity;
+	float				minX, maxX, minY, maxY, minZ, maxZ;
+	float				boundingBoxVolume;
+	float				diameter;
+	float				eccentricity;
+	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist, A3hist;
+
 
 protected:
 
@@ -164,16 +172,6 @@ protected:
 	VectorAttributes    pointNormals;
 	VectorAttributes    faceNormals;
 	std::string	cls;
-
-	float				surfaceArea;
-	float				volume;
-	float				compactness;
-	float				sphericity;
-	float				minX, maxX, minY, maxY, minZ, maxZ;
-	float				boundingBoxVolume;
-	float				diameter;
-	float				eccentricity;
-	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist,A3hist;
 
 };
 
