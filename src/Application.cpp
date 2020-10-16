@@ -285,7 +285,7 @@ void startNewQuery() {
         cout << i << endl;
 
         vector<float> vec1 = get<2>(feature_vectors[i]);
-        distance = eucleanDist(vec1, query_vector);
+        distance = cosineSimilarity(vec1, query_vector);
 
         string name = get<0>(feature_vectors[i]);
         string shape = get<1>(feature_vectors[i]);
