@@ -47,6 +47,11 @@ void mkdir(const char* dir)
     delete[] ndb;
 }
 
+bool sortbysec(const pair<pair<string, string>, float>& a, const pair<pair<string, string>, float>& b)
+{
+    return (a.second < b.second);
+}
+
 void scanFolder(string location)
 {
     string folder;
@@ -176,7 +181,7 @@ void loadDB() {
         name = row[0];
         shape_class = row[1];
 
-        for (int i = 2; i < row.size(); i++) {
+        for (int i = 1; i < row.size(); i++) {                  // CHANGE i TO 2 WHEN ACCOUNTING FOR SHAPE
             // cout << row[i] << endl;
             features.push_back(stof(row[i]));
         }
@@ -184,6 +189,28 @@ void loadDB() {
         tuple tup = make_tuple(name, shape_class, features);
         feature_vectors.push_back(tup);
     }
+}
+
+float eucleanDist(vector<float> s1, vector<float> s2)
+{
+    float Sum = 0;
+    float distance = 0;
+
+    for (int i = 0; i < s1.size(); i++)
+    {
+        Sum += pow((s1[i] - s2[i]), 2.0);
+        distance += sqrt(Sum);
+    }
+    return distance;
+}
+
+float matchFeatures(vector<float> vec1, vector<float> vec2) {
+
+    float distance = 0;
+
+
+    return distance;
+
 }
 
 void startNewQuery() {
@@ -199,10 +226,10 @@ void startNewQuery() {
 
     float s = query_grid->calculateSurfaceArea();
     float v = query_grid->calculateVolume();
-    float b = query_grid->calculateBoundingBoxVol();
-    float e = query_grid->calculateEccentricity();
-    float d = query_grid->calculateDiameter();
     float r = query_grid->calculateSphericity();
+    float b = query_grid->calculateBoundingBoxVol();
+    float d = query_grid->calculateDiameter();
+    float e = query_grid->calculateEccentricity();
 
     query_grid->calculateD1();
     query_grid->calculateD2(N);
@@ -210,12 +237,13 @@ void startNewQuery() {
     query_grid->calculateD4(N);
     query_grid->calculateA3(N);
 
-    query_vector.push_back(s);
+    /*query_vector.push_back(s);
     query_vector.push_back(v);
-    query_vector.push_back(b);
-    query_vector.push_back(e);
-    query_vector.push_back(d);
+    query_vector.push_back(query_grid->compactness);
     query_vector.push_back(r);
+    query_vector.push_back(b);
+    query_vector.push_back(d);
+    query_vector.push_back(e);*/
 
     for (int i = 0; i < size(query_grid->D1hist); i++) {
         query_vector.push_back(query_grid->D1hist[i]);
@@ -233,9 +261,43 @@ void startNewQuery() {
         query_vector.push_back(query_grid->A3hist[i]);
     }
 
-    for (int i = 0; i < query_vector.size(); i++) {
-        cout << query_vector[i] << endl;
+    vector<pair<pair<string, string>, float>> result;
+    float distance;
+    int numF = feature_vectors.size();
+
+    for (int i = 0; i < numF; i++) {
+
+        cout << i << endl;
+
+        vector<float> vec1 = get<2>(feature_vectors[i]);
+        distance = eucleanDist(vec1, query_vector);
+
+        string name = get<0>(feature_vectors[i]);
+        string shape = get<1>(feature_vectors[i]);
+
+        cout << name + shape << endl;
+        cout << distance << endl;
+
+        pair<string, string> p1 = make_pair(name, shape);
+        pair<pair<string, string>, float> p2 = make_pair(p1, distance);
+        result.push_back(p2);
     }
+
+
+    // COMPARE query_vector WITH feature_vectors HERE
+
+    sort(result.begin(), result.end(), sortbysec);
+
+    cout << "#############" << endl;
+    cout << "CLOSEST 5 SHAPES: " << endl;
+    for (int i = 0; i < 5; i++) {
+        cout << result[i].first.first + ",  " + result[i].first.second << endl;
+        cout << "distance: ";
+        cout << result[i].second << endl;
+        cout << endl;
+    }
+    cout << "#############" << endl;
+
 
 }
 
