@@ -201,20 +201,21 @@ float eucleanDist(vector<float> s1, vector<float> s2)
         Sum += pow((s1[i] - s2[i]), 2.0);
         distance += sqrt(Sum);
     }
+   
     return distance;
 }
 
 float cosineSimilarity(vector<float> s1, vector<float> s2)
 {
     float dot = 0.0, denom_a = 0.0, denom_b = 0.0;
-    for (int i = 0; i < s1.size(); ++i) {
+    
+    for (int i = 0; i < s1.size(); ++i) 
+    {
         dot += s1[i] * s2[i];
-
         denom_a += s1[i] * s1[i];
         denom_b += s2[i] * s2[i];
-
     }
-    cout << dot / (sqrt(denom_a) * sqrt(denom_b));
+    
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
