@@ -22,8 +22,7 @@ public:
 		pointsZ.resize(P);
 		cells.resize(3 * C);
 
-		for (int i = 0; i < 10; i++) {
-			A1hist.push_back(0);
+		for (int i = 0; i < 14; i++) {
 			D1hist.push_back(0);
 			D2hist.push_back(0);
 			D3hist.push_back(0);
@@ -43,6 +42,8 @@ public:
 	float calculateSphericity();
 
 	double calculateAngleBetweenPoints();
+
+	float D1min, D1max, D2min, D2max, D3min, D3max, D4min, D4max, A3min, A3max;
 
 
 
@@ -124,27 +125,137 @@ public:
 	void PCARotation();
 
 	void calculateD1();
-	vector<float> getD1hist() {
+	vector<float> getD1hist(float min, float max, int bins) 
+	{
+		float binSize = (max - min) / bins;
+
+		for (int i = 0; i < D1s.size(); i++)
+		{
+			float distance = D1s[i];
+			for (int b = 0; b < bins; b++) {
+				if (distance >= (b * binSize + min) && distance < (b + 1) * binSize + min) {
+					D1hist[b] += 1;
+					break;
+				}
+				else if (distance >= bins * binSize + min) {
+					D1hist[bins - 1] += 1; 
+					break;
+				}
+			}
+		}
+
+		for (int i = 0; i < bins; i++) {
+			D1hist[i] = D1hist[i] / D1s.size();
+		}
+		
 		return D1hist;
 	}
 
 	void calculateD2(int n);
-	vector<float> getD2hist() {
+	vector<float> getD2hist(float max, float min, int bins) 
+	{
+		float binSize = (max - min) / bins;
+
+		for (int i = 0; i < D2s.size(); i++)
+		{
+			float distance = D2s[i];
+			for (int b = 0; b < bins; b++) {
+				if (distance >= (b * binSize + min) && distance < (b + 1) * binSize + min) {
+					D2hist[b] += 1;
+					break;
+				}
+				else if (distance >= bins * binSize + min) {
+					D2hist[bins - 1] += 1;
+					break;
+				}
+			}
+		}
+
+		for (int i = 0; i < bins; i++) {
+			D2hist[i] = D2hist[i] / D2s.size();
+		}
+
 		return D2hist;
 	}
 
 	void calculateD3(int n);
-	vector<float> getD3hist() {
+	vector<float> getD3hist(float min, float max, int bins) 
+	{
+		float binSize = (max - min) / bins;
+
+		for (int i = 0; i < D3s.size(); i++)
+		{
+			float distance = D3s[i];
+			for (int b = 0; b < bins; b++) {
+				if (distance >= (b * binSize + min) && distance < (b + 1) * binSize + min) {
+					D3hist[b] += 1;
+					break;
+				}
+				else if (distance >= bins * binSize + min) {
+					D3hist[bins - 1] += 1;
+					break;
+				}
+			}
+		}
+
+		for (int i = 0; i < bins; i++) {
+			D3hist[i] = D3hist[i] / D3s.size();
+		}
+
 		return D3hist;
 	}
 
 	void calculateD4(int n);
-	vector<float> getD4hist() {
+	vector<float> getD4hist(float min, float max, int bins) 
+	{
+		float binSize = (max - min) / bins;
+
+		for (int i = 0; i < D4s.size(); i++)
+		{
+			float distance = D4s[i];
+			for (int b = 0; b < bins; b++) {
+				if (distance >= (b * binSize + min) && distance < (b + 1) * binSize + min) {
+					D4hist[b] += 1;
+					break;
+				}
+				else if (distance >= bins * binSize + min) {
+					D4hist[bins - 1] += 1;
+					break;
+				}
+			}
+		}
+
+		for (int i = 0; i < bins; i++) {
+			D4hist[i] = D4hist[i] / D4s.size();
+		}
+
 		return D4hist;
 	}
 
 	void calculateA3(int n);
-	vector<float> getA3hist() {
+	vector<float> getA3hist(float min, float max, int bins) 
+	{
+		float binSize = (max - min) / bins;
+
+		for (int i = 0; i < A3s.size(); i++)
+		{
+			float distance = A3s[i];
+			for (int b = 0; b < bins; b++) {
+				if (distance >= (b * binSize + min) && distance < (b + 1) * binSize + min) {
+					A3hist[b] += 1;
+					break;
+				}
+				else if (distance >= bins * binSize + min) {
+					A3hist[bins - 1] += 1;
+					break;
+				}
+			}
+		}
+
+		for (int i = 0; i < bins; i++) {
+			A3hist[i] = A3hist[i] / A3s.size();
+		}
+
 		return A3hist;
 	}
 
@@ -173,7 +284,8 @@ protected:
 	float				boundingBoxVolume;
 	float				diameter;
 	float				eccentricity;
-	vector<float>		A1hist, D1hist, D2hist, D3hist, D4hist,A3hist;
+	vector<float>		D1s, D2s, D3s, D4s, A3s;
+	vector<float>		D1hist, D2hist, D3hist, D4hist,A3hist;
 
 };
 
