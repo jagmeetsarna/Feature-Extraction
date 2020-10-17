@@ -205,6 +205,36 @@ float eucleanDist(vector<float> s1, vector<float> s2)
     return distance;
 }
 
+float crossBinDist(vector<float> s1, vector<float> s2) {
+    float sum = 0;
+    float distance = 0;
+
+    float w1 = 0.1;
+    float w2 = 0.8;
+
+    for (int i = 0; i < s1.size(); i++) {
+        for (int j = 0; j < s2.size(); j++) {
+
+            float val = (s1[i] - s2[j]);
+            if (i == j) {
+                val *= w2;
+            }
+            else if (abs(i - j) == 1) {
+                val += w1;
+            }
+            else {
+                val = 0;
+                continue;
+            }
+
+            sum = pow(val, 2.0);
+            distance += sqrt(sum);
+        }
+    }
+
+    return distance;
+}
+
 float cosineSimilarity(vector<float> s1, vector<float> s2)
 {
     float dot = 0.0, denom_a = 0.0, denom_b = 0.0;
@@ -285,7 +315,9 @@ void startNewQuery() {
         cout << i << endl;
 
         vector<float> vec1 = get<2>(feature_vectors[i]);
-        distance = cosineSimilarity(vec1, query_vector);
+        //distance = eucleanDist(vec1, query_vector);
+        //distance = cosineSimilarity(vec1, query_vector);
+        distance = crossBinDist(vec1, query_vector);
 
         string name = get<0>(feature_vectors[i]);
         string shape = get<1>(feature_vectors[i]);
