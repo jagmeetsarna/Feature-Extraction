@@ -104,6 +104,11 @@ void keyboard(unsigned char c, int, int)					//Callback for keyboard events:
     }
 }
 
+float normalize(float value, float min, float max)
+{
+    return (value - min) / (max - min);
+}
+
 void loadFilter()
 {
     fstream filtin;
@@ -148,16 +153,13 @@ int main(int argc, char* argv[])
 {
     string input;
     vector<Grid*> grids;
-    float D1min = FLT_MAX, D2min = FLT_MAX, D3min = FLT_MAX, D4min = FLT_MAX, A3min = FLT_MAX;
-    float D1max = FLT_MIN, D2max = FLT_MIN, D3max = FLT_MIN, D4max = FLT_MIN, A3max = FLT_MIN;
+    vector<string> names;
+    int bins = 14;
+    float D1min = FLT_MAX, D2min = FLT_MAX, D3min = FLT_MAX, D4min = FLT_MAX, A3min = FLT_MAX, SAmin = FLT_MAX, COmin = FLT_MAX, BBVmin = FLT_MAX, DIAmin = FLT_MAX, ECCmin = FLT_MAX;
+    float D1max = FLT_MIN, D2max = FLT_MIN, D3max = FLT_MIN, D4max = FLT_MIN, A3max = FLT_MIN, SAmax = FLT_MIN, COmax = FLT_MIN, BBVmax = FLT_MIN, DIAmax = FLT_MIN, ECCmax = FLT_MIN;
 
     cout << "Please specify the folder to extract the features from" << endl;
     cin >> input;
-
-    fstream filtout;
-    filtout.open("output.csv", ios::out);
-    filtout << "sep=;" << endl;
-    filtout << "name;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D1-11;D1-12;D1-13;D1-14;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D2-11;D2-12;D2-13;D2-14;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D3-11;D3-12;D3-13;D3-14;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;D4-11;D4-12;D4-13;D4-14;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10;A3-11;A3-12;A3-13;A3-14" << endl;
 
     for (const auto& entry : fs::directory_iterator(input))
     {
@@ -173,11 +175,11 @@ int main(int argc, char* argv[])
 
             if (file.find("/") <= size(file))
             {
-                filtout << file.substr(file.find_last_of("/") + 1) << ";";
+                names.push_back(file.substr(file.find_last_of("/") + 1));
             }
             else
             {
-                filtout << file.substr(file.find_last_of("\\") + 1) << ";";
+                names.push_back(file.substr(file.find_last_of("\\") + 1));
             }
 
             grid = std::get<0>(openFile(file));
@@ -212,21 +214,85 @@ int main(int argc, char* argv[])
             if (grid->A3max > A3max)
                 A3max = grid->A3max;
 
-            filtout << endl;
+            float SA = grid->calculateSurfaceArea();
+            if (SA < SAmin)
+                SAmin = SA;
+            if (SA > SAmax)
+                SAmax = SA;
+
+            float CO = grid->calculateSphericity();
+            if (CO < COmin)
+                COmin = CO;
+            if (CO > COmax)
+                COmax = CO;
+
+            float BBV = grid->calculateBoundingBoxVol();
+            if (BBV < BBVmin)
+                BBVmin = BBV;
+            if (BBV > BBVmax)
+                BBVmax = BBV;
+
+            float DIAM = grid->calculateDiameter();
+            if (DIAM < DIAmin)
+                DIAmin = DIAM;
+            if (DIAM > DIAmax)
+                DIAmax = DIAM;
+
+            float ECC = grid->calculateEccentricity();
+            if (ECC < ECCmin)
+                ECCmin = ECC;
+            if (ECC > ECCmax)
+                ECCmax = ECC;
+
             grids.push_back(grid);
         }
     }
 
-    grids.shrink_to_fit();
+    fstream filtout;
+    filtout.open("output.csv", ios::out);
+    filtout << "sep=;" << endl;
+    filtout << "name;Surface Area;Compactness;Bounding Box Volume;Diameter;Eccentricity;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D1-11;D1-12;D1-13;D1-14;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D2-11;D2-12;D2-13;D2-14;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D3-11;D3-12;D3-13;D3-14;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;D4-11;D4-12;D4-13;D4-14;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10;A3-11;A3-12;A3-13;A3-14" << endl;
 
     for (int i = 0; i < grids.size(); i++)
     {
-        vector<float> D1hist = grid->getD1hist(D1min, D1max, 14);
-        vector<float> D2hist = grid->getD1hist(D2min, D2max, 14);
-        vector<float> D3hist = grid->getD1hist(D3min, D3max, 14);
-        vector<float> D4hist = grid->getD1hist(D4min, D4max, 14);
-        vector<float> A3hist = grid->getD1hist(A3min, A3max, 14);
+        vector<float> D1hist = grids[i]->getD1hist(D1min, D1max, bins);
+        vector<float> D2hist = grids[i]->getD1hist(D2min, D2max, bins);
+        vector<float> D3hist = grids[i]->getD1hist(D3min, D3max, bins);
+        vector<float> D4hist = grids[i]->getD1hist(D4min, D4max, bins);
+        vector<float> A3hist = grids[i]->getD1hist(A3min, A3max, bins);
+
+        filtout << names[i] << ";";
+
+        filtout << normalize(grids[i]->calculateSurfaceArea(), SAmin, SAmax) << ";";
+        filtout << normalize(grids[i]->calculateSphericity(), COmin, COmax) << ";";
+        filtout << normalize(grids[i]->calculateBoundingBoxVol(), BBVmin, BBVmax) << ";";
+        filtout << normalize(grids[i]->calculateDiameter(), DIAmin, DIAmax) << ";";
+        filtout << normalize(grids[i]->calculateEccentricity(), ECCmin, ECCmax) << ";";
+
+        for (int j = 0; j < bins; j++)
+        {
+            filtout << D1hist[j] << ";";
+        }
+        for (int j = 0; j < bins; j++)
+        {
+            filtout << D2hist[j] << ";";
+        }
+        for (int j = 0; j < bins; j++)
+        {
+            filtout << D3hist[j] << ";";
+        }
+        for (int j = 0; j < bins; j++)
+        {
+            filtout << D4hist[j] << ";";
+        }
+        for (int j = 0; j < bins; j++)
+        {
+            filtout << A3hist[j] << ";";
+        }
+
+        filtout << endl;
     }
+
 
     filtout.close();
 

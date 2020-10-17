@@ -561,7 +561,7 @@ void Grid::calculateA3(int n)
 					A3min = angle;
 				if (angle > A3max)
 					A3max = angle;
-
+				A3s.push_back(angle);
 			}
 		}
 	}
@@ -584,6 +584,7 @@ void Grid::calculateD1() {
 			D1min = distance;
 		if (distance > D1max)
 			D1max = distance;
+		D1s.push_back(distance);
 	}
 }
 
