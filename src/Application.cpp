@@ -336,10 +336,10 @@ void featureExtract(string input)
     for (int i = 0; i < grids.size(); i++)
     {
         vector<float> D1hist = grids[i]->getD1hist(D1min, D1max, bins);
-        vector<float> D2hist = grids[i]->getD1hist(D2min, D2max, bins);
-        vector<float> D3hist = grids[i]->getD1hist(D3min, D3max, bins);
-        vector<float> D4hist = grids[i]->getD1hist(D4min, D4max, bins);
-        vector<float> A3hist = grids[i]->getD1hist(A3min, A3max, bins);
+        vector<float> D2hist = grids[i]->getD2hist(D2min, D2max, bins);
+        vector<float> D3hist = grids[i]->getD3hist(D3min, D3max, bins);
+        vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
+        vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
 
         filtout << names[i] << ";";
 
@@ -387,15 +387,6 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
     }
     
     return dot / (sqrt(denom_a) * sqrt(denom_b));
-}
-
-float matchFeatures(vector<float> vec1, vector<float> vec2) {
-
-    float distance = 0;
-
-
-    return distance;
-
 }
 
 void startNewQuery() {
