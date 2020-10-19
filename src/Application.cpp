@@ -247,21 +247,22 @@ void loadDB(string file)
 
 float eucleanDist(vector<float> s1, vector<float> s2)
 {
-    float Sum = 0;
+    float sum = 0;
     float distance = 0;
 
     for (int i = 0; i < s1.size(); i++)
     {
-        Sum += pow((s1[i] - s2[i]), 2.0);
-        distance += sqrt(Sum);
+        sum += pow((s1[i] - s2[i]), 2.0);
+        distance += sum;
     }
    
-    return distance;
+    return sqrt(distance);
 }
 
 float crossBinDist(vector<float> s1, vector<float> s2) {
     float sum = 0;
     float distance = 0;
+    float w0 = 0.05;
     float w1 = 0.1;
     float w2 = 0.8;
 
@@ -269,22 +270,20 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
         for (int j = 0; j < s2.size(); j++) {
 
             float val = (s1[i] - s2[j]);
+            val = pow(val, 2.0);
             if (i == j) {
-                val *= w2;
+                distance += val * w2;
             }
             else if (abs(i - j) == 1) {
-                val += w1;
+                distance += val * w1;
             }
-            else {
-                val = 0;
-                continue;
+            else if (abs(i - j)  >= 2) {
+                // distance = val * w0;
+                break;
             }
-
-            sum = pow(val, 2.0);
-            distance += sqrt(sum);
         }
     }
-    return distance;
+    return sqrt(distance);
 }
 
 void featureExtractNormalized(string input)
@@ -597,7 +596,7 @@ void startNewQuery() {
     int numF = feature_vectors.size();
 
     vector<float> query_vector_f;
-    vector<float> query_vector_h;
+    vector<float> query_vector_h1, query_vector_h2, query_vector_h3, query_vector_h4, query_vector_h5;
 
     tuple tup = openFile(file_name);
     Grid* query_grid = get<0>(tup);
@@ -632,19 +631,19 @@ void startNewQuery() {
     query_vector_f.push_back(e);
 
     for (int i = 0; i < bins; i++) {
-        query_vector_h.push_back(D1hist[i]);
+        query_vector_h1.push_back(D1hist[i]);
     }
     for (int i = 0; i < size(query_grid->D2hist); i++) {
-        query_vector_h.push_back(D2hist[i]);
+        query_vector_h2.push_back(D2hist[i]);
     }
     for (int i = 0; i < bins; i++) {
-        query_vector_h.push_back(D3hist[i]);
+        query_vector_h3.push_back(D3hist[i]);
     }
     for (int i = 0; i < bins; i++) {
-        query_vector_h.push_back(D4hist[i]);
+        query_vector_h4.push_back(D4hist[i]);
     }
     for (int i = 0; i < bins; i++) {
-        query_vector_h.push_back(A3hist[i]);
+        query_vector_h5.push_back(A3hist[i]);
     }
 
     vector<pair<string, float>> result;
@@ -658,10 +657,19 @@ void startNewQuery() {
         vector<float> vec1 = get<1>(feature_vectors[i]);
 
         vector<float> vecf(vec1.begin(), vec1.begin() + 5);
-        vector<float> vech(vec1.begin() + 5, vec1.end());
+        vector<float> vec_h1(vec1.begin() + 5 , vec1.begin() + 5 + bins);
+        vector<float> vec_h2(vec1.begin() + 5 + bins , vec1.begin() + 5 + bins*2);
+        vector<float> vec_h3(vec1.begin() + 5 + bins*2, vec1.begin() + 5 + bins*3);
+        vector<float> vec_h4(vec1.begin() + 5 + bins*3, vec1.begin() + 5 + bins*4);
+        vector<float> vec_h5(vec1.begin() + 5 + bins*4, vec1.end());
         //distance += cosineSimilarity(vecf, query_vector_f);
-        //distance += eucleanDist(vecf, query_vector_f);
-        distance += crossBinDist(vech, query_vector_h);
+        distance += eucleanDist(vecf, query_vector_f);
+        distance += crossBinDist(vec_h1, query_vector_h1);
+        distance += crossBinDist(vec_h2, query_vector_h2);
+        distance += crossBinDist(vec_h3, query_vector_h3);
+        distance += crossBinDist(vec_h4, query_vector_h4);
+        distance += crossBinDist(vec_h5, query_vector_h5);
+
 
         string name = get<0>(feature_vectors[i]);
 
