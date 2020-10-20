@@ -570,8 +570,6 @@ void Grid::calculateA3(int n)
 void Grid::calculateD1() {
 
 	// Calculates the distance between the barycenter and a random vertex.
-	// The distances are added into a histogram (D1hist) with 10 bins, each bin being distance 0.1.
-	// Max distance = 1?
 
 	float distance;
 	D1max = FLT_MIN;
@@ -613,7 +611,7 @@ void Grid::calculateD2(int n) {
 			}
 
 			distance = sqrt(pow((pointsX[p1] - pointsX[p2]), 2) + pow((pointsY[p1] - pointsY[p2]), 2)
-				+ pow((pointsZ[p1], pointsZ[p2]), 2));
+				+ pow((pointsZ[p1] - pointsZ[p2]), 2));
 			D2s.push_back(distance);
 
 			if (distance < D2min)

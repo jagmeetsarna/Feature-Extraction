@@ -150,7 +150,7 @@ public:
 	}
 
 	void calculateD2(int n);
-	vector<float> getD2hist(float max, float min, int bins) 
+	vector<float> getD2hist(float min, float max, int bins) 
 	{
 		float binSize = (max - min) / bins;
 

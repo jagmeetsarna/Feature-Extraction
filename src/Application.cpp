@@ -35,6 +35,8 @@ float D1max = FLT_MIN, D2max = FLT_MIN, D3max = FLT_MIN, D4max = FLT_MIN, A3max 
 float SAavg = 0, COavg = 0, BBVavg = 0, DIAavg = 0, ECCavg = 0, SAsd = 0, COsd = 0, BBVsd = 0, DIAsd = 0, ECCsd = 0;
 int bins = 14;
 
+float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
+
 
 
 Grid* grid = 0;
@@ -191,16 +193,16 @@ void loadDB(string file)
         row.push_back(word);
     }
 
-    SAmin = stof(row[0]);
-    SAmax = stof(row[1]);
-    COmin = stof(row[2]);
-    COmax = stof(row[3]);
-    BBVmin = stof(row[4]);
-    BBVmax = stof(row[5]);
-    DIAmin = stof(row[6]);
-    DIAmax = stof(row[7]);
-    ECCmin = stof(row[8]);
-    ECCmax = stof(row[9]);
+    SAval1 = stof(row[0]);
+    SAval2 = stof(row[1]);
+    COval1 = stof(row[2]);
+    COval2 = stof(row[3]);
+    BBVval1 = stof(row[4]);
+    BBVval2 = stof(row[5]);
+    DIAval1 = stof(row[6]);
+    DIAval2 = stof(row[7]);
+    ECCval1 = stof(row[8]);
+    ECCval2 = stof(row[9]);
 
     row.clear();
     s.clear();
@@ -525,23 +527,25 @@ void featureExtractStandardized(string input)
     fstream filtout;
     filtout.open("outputStand.csv", ios::out);
     filtout << "sep=;" << endl;
+    filtout << SAavg << ";" << SAsd << ";" << COavg << ";" << COsd << ";" << BBVavg << ";" << BBVsd << ";" << DIAavg << ";" << DIAsd << ";" << ECCavg << ";" << ECCsd << endl;
+    filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
     filtout << "name;Surface Area;Compactness;Bounding Box Volume;Diameter;Eccentricity;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D1-11;D1-12;D1-13;D1-14;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D2-11;D2-12;D2-13;D2-14;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D3-11;D3-12;D3-13;D3-14;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;D4-11;D4-12;D4-13;D4-14;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10;A3-11;A3-12;A3-13;A3-14" << endl;
 
     for (int i = 0; i < grids.size(); i++)
     {
         vector<float> D1hist = grids[i]->getD1hist(D1min, D1max, bins);
-        vector<float> D2hist = grids[i]->getD1hist(D2min, D2max, bins);
-        vector<float> D3hist = grids[i]->getD1hist(D3min, D3max, bins);
-        vector<float> D4hist = grids[i]->getD1hist(D4min, D4max, bins);
-        vector<float> A3hist = grids[i]->getD1hist(A3min, A3max, bins);
+        vector<float> D2hist = grids[i]->getD2hist(D2min, D2max, bins);
+        vector<float> D3hist = grids[i]->getD3hist(D3min, D3max, bins);
+        vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
+        vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
 
         filtout << names[i] << ";";
 
         filtout << standardize(SAs[i], SAavg, SAsd) << ";";
         filtout << standardize(COs[i], COavg, COsd) << ";";
-        filtout << standardize(BBVs[i], BBVavg, BBVsd) << ";";
+        filtout << standardize(BBVs[i], BBVavg, BBVsd) << ";";  
         filtout << standardize(DIAs[i], DIAavg, DIAsd) << ";";
-        filtout << standardize(DIAs[i], DIAavg, DIAsd) << ";";
+        filtout << standardize(ECCs[i], ECCavg, ECCsd) << ";";
 
         for (int j = 0; j < bins; j++)
         {
@@ -601,14 +605,17 @@ void startNewQuery() {
     tuple tup = openFile(file_name);
     Grid* query_grid = get<0>(tup);
 
-    float s = normalize(query_grid->calculateSurfaceArea(), SAmin, SAmax);
-    //float v = query_grid->calculateVolume();
-    float r = normalize(query_grid->calculateSphericity(), COmin, COmax);
-    float b = normalize(query_grid->calculateBoundingBoxVol(), BBVmin, BBVmax);
-    float d = normalize(query_grid->calculateDiameter(), DIAmin, DIAmax);
-    float e = normalize(query_grid->calculateEccentricity(), ECCmin, ECCmax);
+    /*float s = normalize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
+    float r = normalize(query_grid->calculateSphericity(), COval1, COval2);
+    float b = normalize(query_grid->calculateBoundingBoxVol(), BBVval1, BBVval2);
+    float d = normalize(query_grid->calculateDiameter(), DIAval1, DIAval2);
+    float e = normalize(query_grid->calculateEccentricity(), ECCval1, ECCval2);*/
 
-
+    float s = standardize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
+    float r = standardize(query_grid->calculateSphericity(), COval1, COval2);
+    float b = standardize(query_grid->calculateBoundingBoxVol(), BBVval1, BBVval2);
+    float d = standardize(query_grid->calculateDiameter(), DIAval1, DIAval2);
+    float e = standardize(query_grid->calculateEccentricity(), ECCval1, ECCval2);
 
     query_grid->calculateD1();
     query_grid->calculateD2(N);
@@ -623,8 +630,6 @@ void startNewQuery() {
     vector<float> A3hist = query_grid->getA3hist(A3min, A3max, bins);
 
     query_vector_f.push_back(s);
-    // query_vector.push_back(v);
-    //query_vector.push_back(query_grid->compactness);
     query_vector_f.push_back(r);
     query_vector_f.push_back(b);
     query_vector_f.push_back(d);
@@ -633,7 +638,7 @@ void startNewQuery() {
     for (int i = 0; i < bins; i++) {
         query_vector_h1.push_back(D1hist[i]);
     }
-    for (int i = 0; i < size(query_grid->D2hist); i++) {
+    for (int i = 0; i < bins; i++) {
         query_vector_h2.push_back(D2hist[i]);
     }
     for (int i = 0; i < bins; i++) {
