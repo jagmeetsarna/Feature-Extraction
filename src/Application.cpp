@@ -249,13 +249,11 @@ void loadDB(string file)
 
 float eucleanDist(vector<float> s1, vector<float> s2)
 {
-    float sum = 0;
     float distance = 0;
 
     for (int i = 0; i < s1.size(); i++)
     {
-        sum += pow((s1[i] - s2[i]), 2.0);
-        distance += sum;
+        distance += pow((s1[i] - s2[i]), 2.0);
     }
    
     return sqrt(distance);
@@ -268,11 +266,10 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
     float w1 = 0.1;
     float w2 = 0.8;
 
-    for (int i = 0; i < s1.size(); i++) {
+    /*for (int i = 0; i < s1.size(); i++) {
         for (int j = 0; j < s2.size(); j++) {
 
-            float val = (s1[i] - s2[j]);
-            val = pow(val, 2.0);
+            float val = pow((s1[i] - s2[j]), 2);
             if (i == j) {
                 distance += val * w2;
             }
@@ -281,9 +278,14 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
             }
             else if (abs(i - j)  >= 2) {
                 // distance = val * w0;
-                break;
+                continue;
             }
         }
+    }*/
+
+    for (int i = 0; i < s1.size(); i++)
+    {
+        distance += pow((s1[i] - s2[i]), 2);
     }
     return sqrt(distance);
 }
