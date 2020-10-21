@@ -37,6 +37,8 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
+float w_f = 0.05, w_h = 0.19;
+
 
 
 Grid* grid = 0;
@@ -130,7 +132,7 @@ float normalize(float value, float min, float max)
 
 float standardize(float val, float avg, float sd)
 {
-    return (val - avg) / sd;
+    return (val - avg) / (sd * 2);
 }
 
 void loadFilter()
@@ -262,31 +264,26 @@ float eucleanDist(vector<float> s1, vector<float> s2)
 float crossBinDist(vector<float> s1, vector<float> s2) {
     float sum = 0;
     float distance = 0;
-    float w0 = 0.05;
     float w1 = 0.1;
     float w2 = 0.8;
 
-    /*for (int i = 0; i < s1.size(); i++) {
+    for (int i = 0; i < s1.size(); i++) {
         for (int j = 0; j < s2.size(); j++) {
 
             float val = pow((s1[i] - s2[j]), 2);
             if (i == j) {
-                distance += val * w2;
+                distance += pow((s1[i] - s2[j]), 2) * w2;
             }
             else if (abs(i - j) == 1) {
-                distance += val * w1;
-            }
-            else if (abs(i - j)  >= 2) {
-                // distance = val * w0;
-                continue;
+                distance += pow((s1[i] - s2[j]), 2) * w1;
             }
         }
-    }*/
+    }
 
-    for (int i = 0; i < s1.size(); i++)
+    /*for (int i = 0; i < s1.size(); i++)
     {
         distance += pow((s1[i] - s2[i]), 2);
-    }
+    }*/
     return sqrt(distance);
 }
 
@@ -380,7 +377,7 @@ void featureExtractNormalized(string input)
     }
 
     fstream filtout;
-    filtout.open("outputNorm.csv", ios::out);
+    filtout.open("outputq.csv", ios::out);
     filtout << "sep=;" << endl;
     filtout << SAmin << ";" << SAmax << ";" << COmin << ";" << COmax << ";" << BBVmin << ";" << BBVmax << ";" << DIAmin << ";" << DIAmax << ";" << ECCmin << ";" << ECCmax << endl;
     filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
@@ -396,11 +393,11 @@ void featureExtractNormalized(string input)
 
         filtout << names[i] << ";";
 
-        filtout << normalize(grids[i]->calculateSurfaceArea(), SAmin, SAmax) << ";";
-        filtout << normalize(grids[i]->calculateSphericity(), COmin, COmax) << ";";
-        filtout << normalize(grids[i]->calculateBoundingBoxVol(), BBVmin, BBVmax) << ";";
-        filtout << normalize(grids[i]->calculateDiameter(), DIAmin, DIAmax) << ";";
-        filtout << normalize(grids[i]->calculateEccentricity(), ECCmin, ECCmax) << ";";
+        filtout << grids[i]->calculateSurfaceArea() << ";";
+        filtout << grids[i]->calculateSphericity() << ";";
+        filtout << grids[i]->calculateBoundingBoxVol() << ";";
+        filtout << grids[i]->calculateDiameter() << ";";
+        filtout << grids[i]->calculateEccentricity() << ";";
 
         for (int j = 0; j < bins; j++)
         {
@@ -426,8 +423,6 @@ void featureExtractNormalized(string input)
         filtout << endl;
     }
     filtout.close();
-
-    //loadDB("outputNorm.csv");
 }
 
 void featureExtractStandardized(string input)
@@ -574,7 +569,7 @@ void featureExtractStandardized(string input)
     }
     filtout.close();
 
-    loadDB("outputStand.csv");
+    //loadDB("outputStand.csv");
 }
 
 float cosineSimilarity(vector<float> s1, vector<float> s2)
@@ -592,8 +587,6 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
 }
 
 void startNewQuery() {
-
-
 
     cout << "Please specify the query file::" << endl;
     string file_name;
@@ -669,13 +662,18 @@ void startNewQuery() {
         vector<float> vec_h3(vec1.begin() + 5 + bins*2, vec1.begin() + 5 + bins*3);
         vector<float> vec_h4(vec1.begin() + 5 + bins*3, vec1.begin() + 5 + bins*4);
         vector<float> vec_h5(vec1.begin() + 5 + bins*4, vec1.end());
+
+
         //distance += cosineSimilarity(vecf, query_vector_f);
-        distance += eucleanDist(vecf, query_vector_f);
-        distance += crossBinDist(vec_h1, query_vector_h1);
-        distance += crossBinDist(vec_h2, query_vector_h2);
-        distance += crossBinDist(vec_h3, query_vector_h3);
-        distance += crossBinDist(vec_h4, query_vector_h4);
-        distance += crossBinDist(vec_h5, query_vector_h5);
+
+        distance += eucleanDist(vecf, query_vector_f) * w_f;
+
+
+        distance += crossBinDist(vec_h1, query_vector_h1) * w_h;
+        distance += crossBinDist(vec_h2, query_vector_h2) * w_h;
+        distance += crossBinDist(vec_h3, query_vector_h3) * w_h;
+        distance += crossBinDist(vec_h4, query_vector_h4) * w_h;
+        distance += crossBinDist(vec_h5, query_vector_h5) * w_h;
 
 
         string name = get<0>(feature_vectors[i]);
@@ -694,7 +692,7 @@ void startNewQuery() {
 
     cout << "#############" << endl;
     cout << "CLOSEST 5 SHAPES: " << endl;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         cout << result[i].first << endl;
         cout << "distance: ";
         cout << result[i].second << endl;
@@ -710,7 +708,7 @@ int main(int argc, char* argv[])
 
     cout << "Press q to start a new query." << endl;
 
-    cout << "Press n to load a new data base with normalization." << endl;
+    cout << "Press n to load a new data base without normalization." << endl;
 
     cout << "Press s to load a new data base with standardization." << endl;
 
@@ -719,22 +717,19 @@ int main(int argc, char* argv[])
     if (input == 'q') {
 
         string db_file;
-
-        cout << "Please specify the csv data base to load: " << endl;
-        cin >> db_file;
-        loadDB(db_file);
+        loadDB("outputStand.csv");
         startNewQuery();
     }
     else if (input == 'n') {
 
-        cout << "Please specify the new database folder" << endl;
+        cout << "Please specify the database folder" << endl;
         string finput;
         cin >> finput;
         featureExtractNormalized(finput);
     }
     else if (input == 's') {
 
-        cout << "Please specify the new database folder" << endl;
+        cout << "Please specify the database folder" << endl;
         string finput;
         cin >> finput;
         featureExtractStandardized(finput);

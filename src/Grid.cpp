@@ -425,7 +425,7 @@ float Grid::calculateSphericity() {
 
 	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
 	sphericity = 1 / compactness;
-	return sphericity;
+	return 1 / sphericity ;
 }
 
 float Grid::calculateBoundingBoxVol() {
@@ -499,9 +499,8 @@ float Grid::calculateEccentricity() {
 		if (majorEigenValue < eig.eigenvalues()[i])
 		{
 			majorEigenValue = eig.eigenvalues()[i];
+
 		}
-	}
-	for (int i = 1; i < 3; i++) {
 		if (minorEigenValue > eig.eigenvalues()[i])
 		{
 			minorEigenValue = eig.eigenvalues()[i];
