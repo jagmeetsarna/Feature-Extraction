@@ -37,7 +37,7 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
-float w_f = 0.05, w_h = 0.19;
+float w_f = 0.1, w_h = 0.18;
 
 
 
@@ -291,6 +291,7 @@ void featureExtractNormalized(string input)
 {
     vector<Grid*> grids;
     vector<string> names;
+    vector<string> shapes;
 
     for (const auto& entry : fs::directory_iterator(input))
     {
@@ -429,6 +430,7 @@ void featureExtractStandardized(string input)
 {
     vector<Grid*> grids;
     vector<string> names;
+    vector<string> shapes;
     vector<float> SAs, COs, BBVs, DIAs, ECCs;
 
     for (const auto& entry : fs::directory_iterator(input))
@@ -436,6 +438,8 @@ void featureExtractStandardized(string input)
         string folder = entry.path().string();
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
+            //string shape = folder.substr(3);
+            //shapes.push_back(shape);
             string file = fl.path().string();
             string suffix = ".off";
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
@@ -448,7 +452,8 @@ void featureExtractStandardized(string input)
             {
                 names.push_back(file.substr(file.find_last_of("\\") + 1));
             }
-
+            string shape = folder.substr(3);
+            shapes.push_back(shape);
             grid = std::get<0>(openFile(file));
 
             grid->calculateD1();
@@ -536,7 +541,7 @@ void featureExtractStandardized(string input)
         vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
         vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
 
-        filtout << names[i] << ";";
+        filtout << names[i]  + "/" + shapes[i] << ";";
 
         filtout << standardize(SAs[i], SAavg, SAsd) << ";";
         filtout << standardize(COs[i], COavg, COsd) << ";";

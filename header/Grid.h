@@ -266,6 +266,7 @@ public:
 	float				diameter;
 	float				eccentricity;
 	vector<float>		D1hist, D2hist, D3hist, D4hist, A3hist;
+	string				name, shape;
 
 
 protected:
