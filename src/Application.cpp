@@ -1,6 +1,7 @@
 //#include <GL/glew.h>
 //#include <GL/glut.h>
 #include <GLFW/glfw3.h>
+#include <ANN/ANN.h>
 #include <filesystem>
 #include <iostream>
 #include <io.h>
@@ -28,6 +29,8 @@ int drawing_style = 0;
 const int FILTER_SIZE = 250;
 
 int N = 1000000;                            // Number of computations per feature
+
+ANNkd_tree* tree;                           // kd search tree for ANN
 
 
 float D1min = FLT_MAX, D2min = FLT_MAX, D3min = FLT_MAX, D4min = FLT_MAX, A3min = FLT_MAX, SAmin = FLT_MAX, COmin = FLT_MAX, BBVmin = FLT_MAX, DIAmin = FLT_MAX, ECCmin = FLT_MAX;
@@ -183,8 +186,12 @@ void loadDB(string file)
 
     vector<string> row;
     vector<float> features;
+    ANNpointArray data_points;
     string line, word, temp, name, shape_class;
     float val;
+
+    ANNpoint* pa; // an array of points
+    ANNdist* ANNdistArray; // an array of squared distances
 
     getline(fin, line);
 
@@ -247,6 +254,21 @@ void loadDB(string file)
         pair<string, vector<float>> p = make_pair(name, features);
         feature_vectors.push_back(p);
     }
+
+    int maxPoints = feature_vectors.size();
+    int dims = row.size() - 1;
+    data_points = annAllocPts(maxPoints, dims);
+
+    for (int i = 0; i < maxPoints; i++) {
+        ANNpoint p = annAllocPt(dims);
+        for (int j = 0; j < dims; j++) {
+            p[j] = feature_vectors[i].second[j];
+        }
+        data_points[i] = p;
+    }
+    cout << data_points;
+
+    tree = new ANNkd_tree(data_points, maxPoints, dims);
 }
 
 float eucleanDist(vector<float> s1, vector<float> s2)
