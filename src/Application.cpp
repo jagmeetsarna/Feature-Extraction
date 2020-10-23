@@ -73,14 +73,12 @@ void scanFolder(string location)
     for (const auto& entry : fs::directory_iterator(location))
     {
         folder = entry.path().string();
-        cout << folder << endl;
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
             string file = fl.path().string();
             string suffix = ".off";
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
                 continue;
-            cout << file << endl;
             FilterItem fi = scanFile(file);
             int a = folder.find("/");
             if (a <= folder.size())
@@ -266,7 +264,6 @@ void loadDB(string file)
         }
         data_points[i] = p;
     }
-    cout << data_points;
 
     tree = new ANNkd_tree(data_points, maxPoints, dims);
 }
@@ -289,7 +286,7 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
     float w1 = 0.1;
     float w2 = 0.8;
 
-    for (int i = 0; i < s1.size(); i++) {
+    /*for (int i = 0; i < s1.size(); i++) {
         for (int j = 0; j < s2.size(); j++) {
 
             float val = pow((s1[i] - s2[j]), 2);
@@ -300,12 +297,12 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
                 distance += pow((s1[i] - s2[j]), 2) * w1;
             }
         }
-    }
+    }*/
 
-    /*for (int i = 0; i < s1.size(); i++)
+    for (int i = 0; i < s1.size(); i++)
     {
         distance += pow((s1[i] - s2[i]), 2);
-    }*/
+    }
     return sqrt(distance);
 }
 
@@ -623,9 +620,11 @@ void startNewQuery() {
 
     vector<float> query_vector_f;
     vector<float> query_vector_h1, query_vector_h2, query_vector_h3, query_vector_h4, query_vector_h5;
+    vector<float> ann_vector;
 
     tuple tup = openFile(file_name);
     Grid* query_grid = get<0>(tup);
+    ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
 
     /*float s = normalize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
     float r = normalize(query_grid->calculateSphericity(), COval1, COval2);
@@ -652,25 +651,35 @@ void startNewQuery() {
     vector<float> A3hist = query_grid->getA3hist(A3min, A3max, bins);
 
     query_vector_f.push_back(s);
+    ann_vector.push_back(s);
     query_vector_f.push_back(r);
+    ann_vector.push_back(r);
     query_vector_f.push_back(b);
+    ann_vector.push_back(b);
     query_vector_f.push_back(d);
+    ann_vector.push_back(d);
     query_vector_f.push_back(e);
+    ann_vector.push_back(e);
 
     for (int i = 0; i < bins; i++) {
         query_vector_h1.push_back(D1hist[i]);
+        ann_vector.push_back(D1hist[i]);
     }
     for (int i = 0; i < bins; i++) {
         query_vector_h2.push_back(D2hist[i]);
+        ann_vector.push_back(D2hist[i]);
     }
     for (int i = 0; i < bins; i++) {
         query_vector_h3.push_back(D3hist[i]);
+        ann_vector.push_back(D3hist[i]);
     }
     for (int i = 0; i < bins; i++) {
         query_vector_h4.push_back(D4hist[i]);
+        ann_vector.push_back(D4hist[i]);
     }
     for (int i = 0; i < bins; i++) {
         query_vector_h5.push_back(A3hist[i]);
+        ann_vector.push_back(A3hist[i]);
     }
 
     vector<pair<string, float>> result;
@@ -678,8 +687,6 @@ void startNewQuery() {
 
     for (int i = 0; i < numF; i++) {
         float distance = 0;
-
-        cout << i << endl;
 
         vector<float> vec1 = get<1>(feature_vectors[i]);
 
@@ -705,21 +712,39 @@ void startNewQuery() {
 
         string name = get<0>(feature_vectors[i]);
 
-        cout << name << endl;
-        cout << distance << endl;
-
         pair<string, float> p2 = make_pair(name, distance);
         result.push_back(p2);
     }
 
 
-    // COMPARE query_vector WITH feature_vectors HERE
+    //ANN QUERY
+    for (int i = 0; i < ann_vector.size(); i++) {
+        query_point[i] = ann_vector[i];
+    }
+    ANNidx* nnIdx = new ANNidx[5];
+    ANNdist* dists = new ANNdist[5];
 
-    sort(result.begin(), result.end(), sortbysec);
+    tree->annkSearch(query_point, 5, nnIdx, dists, 0);
 
     cout << "#############" << endl;
-    cout << "CLOSEST 5 SHAPES: " << endl;
-    for (int i = 0; i < 10; i++) {
+    cout << "CLOSEST 5 SHAPES USING ANN: " << endl;
+    for (int i = 0; i < 5; i++) {
+        int index = nnIdx[i];
+        cout << result[index].first << endl;
+        cout << "distance: ";
+        cout << dists[i] << endl;
+        cout << endl;
+    }
+    cout << "#############" << endl;
+
+    //CUSTOM QUERY
+    sort(result.begin(), result.end(), sortbysec);
+
+
+
+    cout << "#############" << endl;
+    cout << "CLOSEST 5 SHAPES USING CUSTOM METRIC: " << endl;
+    for (int i = 0; i < 5; i++) {
         cout << result[i].first << endl;
         cout << "distance: ";
         cout << result[i].second << endl;
