@@ -248,9 +248,9 @@ void Grid::momentTest() {
 
 	for (int i = 0; i < numCells(); i++) {
 
-		fX += (sgn(cellCentroids[i].x) * pow(cellCentroids[i].x, 2));
-		fY += (sgn(cellCentroids[i].y) * pow(cellCentroids[i].y, 2));
-		fZ += (sgn(cellCentroids[i].z) * pow(cellCentroids[i].z, 2));
+		fX += (sgn(cellCentroids[i].x) * pow(cellCentroids[i].x, 2.0));
+		fY += (sgn(cellCentroids[i].y) * pow(cellCentroids[i].y, 2.0));
+		fZ += (sgn(cellCentroids[i].z) * pow(cellCentroids[i].z, 2.0));
 	}
 
 	cout << sgn(fX) << endl;
@@ -353,9 +353,9 @@ float Grid::calculateSurfaceArea() {
 		cout << Point3d(p2).x << " " << Point3d(p2).y << " " << Point3d(p2).z << endl;*/
 
 
-		d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x),2) + pow((Point3d(p1).y - Point3d(p0).y),2) + pow((Point3d(p1).z - Point3d(p0).z),2));
-		d2 = sqrt(pow((Point3d(p2).x - Point3d(p1).x),2) + pow((Point3d(p2).y - Point3d(p1).y),2) + pow((Point3d(p2).z - Point3d(p1).z),2));
-		d3 = sqrt(pow((Point3d(p0).x - Point3d(p2).x),2) + pow((Point3d(p0).y - Point3d(p2).y),2) + pow((Point3d(p0).z - Point3d(p2).z),2));
+		d1 = sqrt(pow((Point3d(p1).x - Point3d(p0).x),2.0) + pow((Point3d(p1).y - Point3d(p0).y),2.0) + pow((Point3d(p1).z - Point3d(p0).z),2.0));
+		d2 = sqrt(pow((Point3d(p2).x - Point3d(p1).x),2.0) + pow((Point3d(p2).y - Point3d(p1).y),2.0) + pow((Point3d(p2).z - Point3d(p1).z),2.0));
+		d3 = sqrt(pow((Point3d(p0).x - Point3d(p2).x),2.0) + pow((Point3d(p0).y - Point3d(p2).y),2.0) + pow((Point3d(p0).z - Point3d(p2).z),2.0));
 		s = (d1 + d2 + d3) / 2;
 
 		cellArea = sqrt(s * ((s - d1) * (s - d2) * (s - d3)));
@@ -423,9 +423,9 @@ float Grid::calculateSphericity() {
 	calculateSurfaceArea();
 	calculateVolume();
 
-	compactness = pow(surfaceArea, 3) / (36 * M_PI * pow(volume, 2));
+	compactness = pow(surfaceArea, 3.0) / (36 * M_PI * pow(volume, 2.0));
 	sphericity = 1 / compactness;
-	return 1 / sphericity ;
+	return compactness ;
 }
 
 float Grid::calculateBoundingBoxVol() {
@@ -454,7 +454,7 @@ float Grid::calculateDiameter() {
 		getPoint(i, p);
 
 		float d = 0;
-		d = sqrt(pow(p[0], 2) + pow(p[1], 2) + pow(p[2], 2)); //Distance From barycenter
+		d = sqrt(pow(p[0], 2.0) + pow(p[1], 2.0) + pow(p[2], 2.0)); //Distance From barycenter
 		if (d > disFromBary)
 		{
 			disFromBary = d;
@@ -471,7 +471,7 @@ float Grid::calculateDiameter() {
 
 		float d = 0;
 
-		d = sqrt(pow((p[0] - far_x), 2) + pow((p[1] - far_y), 2) + pow((p[2] - far_z), 2));
+		d = sqrt(pow((p[0] - far_x), 2.0) + pow((p[1] - far_y), 2.0) + pow((p[2] - far_z), 2.0));
 
 		if (d > disFromFarthest)
 		{
@@ -576,7 +576,7 @@ void Grid::calculateD1() {
 
 	for (int i = 0; i < numPoints(); i++) 
 	{
-		distance = sqrt(pow(pointsX[i], 2) + pow(pointsY[i], 2) + pow(pointsZ[i], 2));
+		distance = sqrt(pow(pointsX[i], 2.0) + pow(pointsY[i], 2.0) + pow(pointsZ[i], 2.0));
 		if (distance < D1min)
 			D1min = distance;
 		if (distance > D1max)
@@ -609,8 +609,8 @@ void Grid::calculateD2(int n) {
 				continue;										// do not allow equal points;
 			}
 
-			distance = sqrt(pow((pointsX[p1] - pointsX[p2]), 2) + pow((pointsY[p1] - pointsY[p2]), 2)
-				+ pow((pointsZ[p1] - pointsZ[p2]), 2));
+			distance = sqrt(pow((pointsX[p1] - pointsX[p2]), 2.0) + pow((pointsY[p1] - pointsY[p2]), 2.0)
+				+ pow((pointsZ[p1] - pointsZ[p2]), 2.0));
 			D2s.push_back(distance);
 
 			if (distance < D2min)
@@ -649,9 +649,9 @@ void Grid::calculateD3(int n) {
 					continue;										// do not allow equal points;
 				}
 
-				d1 = sqrt(pow((pointsX[p2] - pointsX[p1]),2) + pow((pointsY[p2] - pointsY[p1]),2) + pow((pointsZ[p2] - pointsZ[p1]),2));
-				d2 = sqrt(pow((pointsX[p3] - pointsX[p2]),2) + pow((pointsY[p3] - pointsY[p2]),2) + pow((pointsZ[p3] - pointsZ[p2]),2));
-				d3 = sqrt(pow((pointsX[p1] - pointsX[p3]),2) + pow((pointsY[p1] - pointsY[p3]),2) + pow((pointsZ[p1] - pointsZ[p3]),2));
+				d1 = sqrt(pow((pointsX[p2] - pointsX[p1]),2.0) + pow((pointsY[p2] - pointsY[p1]),2.0) + pow((pointsZ[p2] - pointsZ[p1]),2.0));
+				d2 = sqrt(pow((pointsX[p3] - pointsX[p2]),2.0) + pow((pointsY[p3] - pointsY[p2]),2.0) + pow((pointsZ[p3] - pointsZ[p2]),2.0));
+				d3 = sqrt(pow((pointsX[p1] - pointsX[p3]),2.0) + pow((pointsY[p1] - pointsY[p3]),2.0) + pow((pointsZ[p1] - pointsZ[p3]),2.0));
 				s = (d1 + d2 + d3) / 2;
 
 				area = sqrt(s * ((s - d1) * (s - d2) * (s - d3)));

@@ -40,7 +40,7 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
-float w_f = 0.1, w_h = 0.18;
+float w_f = 0.01, w_h = 0.198;
 
 
 
@@ -277,16 +277,16 @@ float eucleanDist(vector<float> s1, vector<float> s2)
         distance += pow((s1[i] - s2[i]), 2.0);
     }
    
-    return sqrt(distance);
+    return distance;
 }
 
 float crossBinDist(vector<float> s1, vector<float> s2) {
     float sum = 0;
     float distance = 0;
-    float w1 = 0.1;
-    float w2 = 0.8;
+    float w1 = 0.15;
+    float w2 = 0.7;
 
-    /*for (int i = 0; i < s1.size(); i++) {
+    for (int i = 0; i < s1.size(); i++) {
         for (int j = 0; j < s2.size(); j++) {
 
             float val = pow((s1[i] - s2[j]), 2);
@@ -297,13 +297,13 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
                 distance += pow((s1[i] - s2[j]), 2) * w1;
             }
         }
-    }*/
+    }
 
-    for (int i = 0; i < s1.size(); i++)
+    /*for (int i = 0; i < s1.size(); i++)
     {
         distance += pow((s1[i] - s2[i]), 2);
-    }
-    return sqrt(distance);
+    }*/
+    return distance;
 }
 
 void featureExtractNormalized(string input)
@@ -397,7 +397,7 @@ void featureExtractNormalized(string input)
     }
 
     fstream filtout;
-    filtout.open("outputq.csv", ios::out);
+    filtout.open("output.csv", ios::out);
     filtout << "sep=;" << endl;
     filtout << SAmin << ";" << SAmax << ";" << COmin << ";" << COmax << ";" << BBVmin << ";" << BBVmax << ";" << DIAmin << ";" << DIAmax << ";" << ECCmin << ";" << ECCmax << endl;
     filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
@@ -626,11 +626,11 @@ void startNewQuery() {
     Grid* query_grid = get<0>(tup);
     ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
 
-    /*float s = normalize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
-    float r = normalize(query_grid->calculateSphericity(), COval1, COval2);
-    float b = normalize(query_grid->calculateBoundingBoxVol(), BBVval1, BBVval2);
-    float d = normalize(query_grid->calculateDiameter(), DIAval1, DIAval2);
-    float e = normalize(query_grid->calculateEccentricity(), ECCval1, ECCval2);*/
+    /*float s = query_grid->calculateSurfaceArea();
+    float r = query_grid->calculateSphericity();
+    float b = query_grid->calculateBoundingBoxVol();
+    float d = query_grid->calculateDiameter();
+    float e = query_grid->calculateEccentricity();*/
 
     float s = standardize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
     float r = standardize(query_grid->calculateSphericity(), COval1, COval2);
@@ -700,7 +700,7 @@ void startNewQuery() {
 
         //distance += cosineSimilarity(vecf, query_vector_f);
 
-        distance += eucleanDist(vecf, query_vector_f) * w_f;
+        distance = eucleanDist(vecf, query_vector_f) * w_f;
 
 
         distance += crossBinDist(vec_h1, query_vector_h1) * w_h;
@@ -770,6 +770,7 @@ int main(int argc, char* argv[])
 
         string db_file;
         loadDB("outputStand.csv");
+        //loadDB("outputq.csv");
         startNewQuery();
     }
     else if (input == 'n') {

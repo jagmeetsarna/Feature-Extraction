@@ -1,6 +1,8 @@
 Debug
 Normalized_DB_Remeshed_PCA
+DB_Test
 DB
 *.off
 .vs
 *.csv
+*.xlsx
