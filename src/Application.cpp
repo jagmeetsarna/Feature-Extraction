@@ -40,7 +40,7 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
-float w_f = 0.01, w_h = 0.198;
+float w_f = 0.05, w_h = 0.19;
 
 
 
@@ -289,12 +289,12 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
     for (int i = 0; i < s1.size(); i++) {
         for (int j = 0; j < s2.size(); j++) {
 
-            float val = pow((s1[i] - s2[j]), 2);
+            float val = pow((s1[i] - s2[j]), 2.0);
             if (i == j) {
-                distance += pow((s1[i] - s2[j]), 2) * w2;
+                distance += pow((s1[i] - s2[j]), 2.0) * w2;
             }
             else if (abs(i - j) == 1) {
-                distance += pow((s1[i] - s2[j]), 2) * w1;
+                distance += pow((s1[i] - s2[j]), 2.0) * w1;
             }
         }
     }
@@ -709,6 +709,8 @@ void startNewQuery() {
         distance += crossBinDist(vec_h4, query_vector_h4) * w_h;
         distance += crossBinDist(vec_h5, query_vector_h5) * w_h;
 
+        distance = sqrt(distance);                                   // To correctly compute Euclidean
+
 
         string name = get<0>(feature_vectors[i]);
 
@@ -721,14 +723,14 @@ void startNewQuery() {
     for (int i = 0; i < ann_vector.size(); i++) {
         query_point[i] = ann_vector[i];
     }
-    ANNidx* nnIdx = new ANNidx[5];
-    ANNdist* dists = new ANNdist[5];
+    ANNidx* nnIdx = new ANNidx[10];
+    ANNdist* dists = new ANNdist[10];
 
-    tree->annkSearch(query_point, 5, nnIdx, dists, 0);
+    tree->annkSearch(query_point, 10, nnIdx, dists, 0);
 
     cout << "#############" << endl;
     cout << "CLOSEST 5 SHAPES USING ANN: " << endl;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         int index = nnIdx[i];
         cout << result[index].first << endl;
         cout << "distance: ";
@@ -744,7 +746,7 @@ void startNewQuery() {
 
     cout << "#############" << endl;
     cout << "CLOSEST 5 SHAPES USING CUSTOM METRIC: " << endl;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         cout << result[i].first << endl;
         cout << "distance: ";
         cout << result[i].second << endl;
