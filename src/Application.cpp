@@ -747,6 +747,15 @@ void performEvaluation(int K) {
     vector<float> total_PPVs;
     vector<string> class_names;
 
+    cout << "#############" << endl;
+    cout << "CLOSEST 5 SHAPES USING CUSTOM METRIC: " << endl;
+    for (int i = 0; i < 10; i++) {
+        cout << shape_nums[i].first << endl;
+        cout << "distance: ";
+        cout << shape_nums[i].second << endl;
+        cout << endl;
+    }
+    cout << "#############" << endl;
 
     string folder;
     float total_acc = 0.0;
