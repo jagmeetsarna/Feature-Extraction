@@ -7,6 +7,7 @@
 #include <io.h>
 #include <filesystem>
 #include <conio.h>
+#include <map>
 
 #include <fstream>
 #include <filesystem>
@@ -42,6 +43,9 @@ float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval
 
 float w_f = 0.05, w_h = 0.19;
 
+// Dictionary for the number of shapes in the whole data base
+map<string, int> db_count;
+int num_entries = 0;
 
 
 Grid* grid = 0;
@@ -242,7 +246,13 @@ void loadDB(string file)
             row.push_back(word);
         }
         name = row[0];
-        shape_class = row[1];
+        int index = name.find_last_of("\\/");
+        string shape_class = name.substr(index + 1);
+
+        if (db_count.count(shape_class) == 0) {
+            db_count.insert({ shape_class, 0 });
+        }
+        db_count[shape_class] += 1;
 
         for (int i = 1; i < row.size(); i++) {                  // CHANGE i TO 2 WHEN ACCOUNTING FOR SHAPE
             // cout << row[i] << endl;
@@ -251,6 +261,7 @@ void loadDB(string file)
 
         pair<string, vector<float>> p = make_pair(name, features);
         feature_vectors.push_back(p);
+        num_entries += 1;
     }
 
     int maxPoints = feature_vectors.size();
@@ -610,11 +621,7 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
-void startNewQuery() {
-
-    cout << "Please specify the query file::" << endl;
-    string file_name;
-    cin >> file_name;
+vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag) {
 
     int numF = feature_vectors.size();
 
@@ -718,53 +725,107 @@ void startNewQuery() {
         result.push_back(p2);
     }
 
+    if (ann_flag) {
+        //ANN QUERY
+        for (int i = 0; i < ann_vector.size(); i++) {
+            query_point[i] = ann_vector[i];
+        }
+        ANNidx* nnIdx = new ANNidx[K];
+        ANNdist* dists = new ANNdist[K];
 
-    //ANN QUERY
-    for (int i = 0; i < ann_vector.size(); i++) {
-        query_point[i] = ann_vector[i];
+        tree->annkSearch(query_point, K, nnIdx, dists, 0);
+
+        cout << "#############" << endl;
+        cout << "CLOSEST SHAPES USING ANN: " << endl;
+        for (int i = 0; i < K; i++) {
+            int index = nnIdx[i];
+            cout << result[index].first << endl;
+            cout << "distance: ";
+            cout << dists[i] << endl;
+            cout << endl;
+        }
+        cout << "#############" << endl;
     }
-    ANNidx* nnIdx = new ANNidx[10];
-    ANNdist* dists = new ANNdist[10];
-
-    tree->annkSearch(query_point, 10, nnIdx, dists, 0);
-
-    cout << "#############" << endl;
-    cout << "CLOSEST 5 SHAPES USING ANN: " << endl;
-    for (int i = 0; i < 10; i++) {
-        int index = nnIdx[i];
-        cout << result[index].first << endl;
-        cout << "distance: ";
-        cout << dists[i] << endl;
-        cout << endl;
-    }
-    cout << "#############" << endl;
-
-    //CUSTOM QUERY
     sort(result.begin(), result.end(), sortbysec);
+    vector<pair<string, float>> output(result.begin(), result.begin() + 10);
+    return output;
+
+    delete query_grid;
+}
+
+void performEvaluation() {
+
+    loadDB("outputStand.csv");
+
+    vector<vector<pair<string, float>>> results;
+    vector<pair<string, float>> shape_nums;
+    vector<float> total_accuracies;
 
 
+    string folder;
+    float total_acc = 0.0;
+    int total_queries = 0;
+    int total_TP = 0;
+    int total_TN = 0;
+    int total_FP = 0;
+    int total_FN = 0;
+    for (const auto& entry : fs::directory_iterator("Evaluation_DB"))
+    {
+        folder = entry.path().string();
+        int index = folder.find_last_of("\\/");
+        string query_shape = folder.substr(index + 1);
+        //cout << folder << endl;
+        float current_acc = 0.0;
+        for (const auto& fl : fs::directory_iterator(folder + "/"))
+        {
+            int current_TP = 0;
+            int current_TN = 0;
+            int current_FP = 0;
+            int current_FN = 0;
+            string file = fl.path().string();
+            string name = file;
+            string suffix = ".off";
+            if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
+                continue;
+            cout << file << endl;
+            vector<pair<string, float>> result = startNewQuery(file, 10, false);
+            total_queries += 1;
 
-    cout << "#############" << endl;
-    cout << "CLOSEST 5 SHAPES USING CUSTOM METRIC: " << endl;
-    for (int i = 0; i < 10; i++) {
-        cout << result[i].first << endl;
-        cout << "distance: ";
-        cout << result[i].second << endl;
-        cout << endl;
+            for (int i = 0; i < 10; i++) {
+                int index = result[i].first.find_last_of("\\/");
+                string result_shape = result[i].first.substr(index + 1);
+                cout << query_shape + ", " + result_shape << endl;;
+                if (query_shape == result_shape) {
+                    current_TP += 1;
+                    total_TP += 1;
+                }
+                else {
+                    current_FP += 1;
+                    total_FP += 1;
+                }
+            }
+            current_FN = db_count[query_shape] - current_TP;
+            current_TN = num_entries - db_count[query_shape] - current_FN;
+            current_acc += float(current_TP + current_TN) / float(num_entries);
+        }
+        current_acc /= db_count[query_shape];
+        total_acc += current_acc;
     }
-    cout << "#############" << endl;
 
-
+    total_acc /= db_count.size();
+    cout << total_acc;
 }
 
 int main(int argc, char* argv[])
 {
 
-    cout << "Press q to start a new query." << endl;
+    cout << "Press 'q' to start a new query." << endl;
 
-    cout << "Press n to load a new data base without normalization." << endl;
+    cout << "Press 'n' to load a new data base without normalization." << endl;
 
-    cout << "Press s to load a new data base with standardization." << endl;
+    cout << "Press 's' to load a new data base with standardization." << endl;
+
+    cout << "Press 'e' to perform an evaluation of the system." << endl;
 
     char input = _getch();
 
@@ -773,7 +834,20 @@ int main(int argc, char* argv[])
         string db_file;
         loadDB("outputStand.csv");
         //loadDB("outputq.csv");
-        startNewQuery();
+        cout << "Please specify the query file::" << endl;
+        string file_name;
+        cin >> file_name;
+        vector<pair<string, float>> result = startNewQuery(file_name, 10, true);
+
+        cout << "#############" << endl;
+        cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
+        for (int i = 0; i < 10; i++) {
+            cout << result[i].first << endl;
+            cout << "distance: ";
+            cout << result[i].second << endl;
+            cout << endl;
+        }
+        cout << "#############" << endl;
     }
     else if (input == 'n') {
 
@@ -788,6 +862,9 @@ int main(int argc, char* argv[])
         string finput;
         cin >> finput;
         featureExtractStandardized(finput);
+    }
+    else if (input == 'e') {
+        performEvaluation();
     }
 
     
