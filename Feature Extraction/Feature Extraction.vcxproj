@@ -102,8 +102,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2019;C:\Users\leoze\Desktop\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin;;$(SolutionDir)Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies/ann_1.1.2_MS_Win32_bin</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ANN.lib;C:\Users\leoze\Desktop\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin\ANN.lib;%(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2019;C:\Users\leoze\Desktop\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies/ann_1.1.2_MS_Win32_bin</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ANN.lib;$(SolutionDir)\Dependencies\ann_1.1.2_MS_Win32_bin\ANN.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
@@ -140,8 +140,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies/GLFW/lib-vc2019;C:\Users\leoze\Desktop\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies\ann_1.1.2_MS_Win32_bin;$(SolutionDir)Dependencies/ann_1.1.2_MS_Win32_bin</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ANN.lib;C:\Users\leoze\Desktop\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin\ANN.lib;ANN.lib;%(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\HP\Documents\daani_000\Documents\Jaar 7\Multimedia Retrieval\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\Users\HP\Documents\daani_000\Documents\Jaar 7\Multimedia Retrieval\Feature-Extraction\Dependencies\ann_1.1.2_MS_Win32_bin\ANN.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
