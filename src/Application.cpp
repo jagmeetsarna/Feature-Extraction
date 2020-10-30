@@ -1,4 +1,4 @@
-//#include <GL/glew.h>
+//#include <GLEW/include/GL/glew.h>
 //#include <GL/glut.h>
 #include <GLFW/glfw3.h>
 #include <ANN/ANN.h>
@@ -63,6 +63,11 @@ void mkdir(const char* dir)
     mbstowcs_s(&out, ndb, size, dir, size - 1);
     _wmkdir(ndb);
     delete[] ndb;
+}
+
+void draw()												                //Render the 3D mesh (GLUT callback function)
+{
+    //renderer.draw(*grid);
 }
 
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
@@ -748,22 +753,26 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     }
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + 10);
-    return output;
-
     delete query_grid;
+    return output;
 }
 
-void performEvaluation() {
+void performEvaluation(int K) {
 
     loadDB("outputStand.csv");
 
     vector<vector<pair<string, float>>> results;
     vector<pair<string, float>> shape_nums;
     vector<float> total_accuracies;
+    vector<float> total_TPRs;
+    vector<float> total_PPVs;
+    vector<string> class_names;
 
 
     string folder;
     float total_acc = 0.0;
+    float total_TPR = 0.0;
+    float total_PPV = 0.0;
     int total_queries = 0;
     int total_TP = 0;
     int total_TN = 0;
@@ -774,8 +783,13 @@ void performEvaluation() {
         folder = entry.path().string();
         int index = folder.find_last_of("\\/");
         string query_shape = folder.substr(index + 1);
+        class_names.push_back(query_shape);
         //cout << folder << endl;
         float current_acc = 0.0;
+        float current_PPV = 0.0;
+        float current_TPR = 0.0;
+        int current_queries = 0;
+        total_queries += 1;
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
             int current_TP = 0;
@@ -788,8 +802,8 @@ void performEvaluation() {
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
                 continue;
             cout << file << endl;
-            vector<pair<string, float>> result = startNewQuery(file, 10, false);
-            total_queries += 1;
+            vector<pair<string, float>> result = startNewQuery(file, K, false);
+            current_queries += 1;
 
             for (int i = 0; i < 10; i++) {
                 int index = result[i].first.find_last_of("\\/");
@@ -807,13 +821,47 @@ void performEvaluation() {
             current_FN = db_count[query_shape] - current_TP;
             current_TN = num_entries - db_count[query_shape] - current_FN;
             current_acc += float(current_TP + current_TN) / float(num_entries);
+            current_TPR += float(current_TP) / float(db_count[query_shape]);
+            current_PPV += float(current_TP) / float(K);
         }
-        current_acc /= db_count[query_shape];
+        current_acc /= current_queries;
+        current_TPR /= current_queries;
+        current_PPV /= current_queries;
+        total_accuracies.push_back(current_acc);
+        total_TPRs.push_back(current_TPR);
+        total_PPVs.push_back(current_PPV);
         total_acc += current_acc;
+        total_TPR += current_TPR;
+        total_PPV += current_PPV;
     }
 
-    total_acc /= db_count.size();
-    cout << total_acc;
+    total_acc /= total_queries;
+    total_TPR /= total_queries;
+    total_PPV /= total_queries;
+    cout << total_acc << endl;
+    cout << total_TPR << endl;
+    cout << total_PPV << endl;
+
+    fstream evout;
+    evout.open("evaluationOutput.csv", ios::out);
+    evout << "sep=;" << endl;
+    evout << "shape class;average accuracy;average TPR;average PPV" << endl;
+    for (int i = 0; i < total_accuracies.size(); i++) {
+        evout << class_names[i] << ";";
+        evout << total_accuracies[i] << ";";
+        evout << total_TPRs[i] << ";";
+        evout << total_PPVs[i] << endl;
+    }
+
+    evout << endl;
+    evout << "overall accuracy;overall TPR;overall PPV" << endl;
+    evout << total_acc << ";" << total_TPR << ";" << total_PPV << endl;
+
+
+}
+
+void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
+
 }
 
 int main(int argc, char* argv[])
@@ -848,6 +896,8 @@ int main(int argc, char* argv[])
             cout << endl;
         }
         cout << "#############" << endl;
+
+        displayQueryResult(argc, argv, result);
     }
     else if (input == 'n') {
 
@@ -864,7 +914,7 @@ int main(int argc, char* argv[])
         featureExtractStandardized(finput);
     }
     else if (input == 'e') {
-        performEvaluation();
+        performEvaluation(10);
     }
 
     
