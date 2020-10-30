@@ -417,10 +417,10 @@ void featureExtractNormalized(string input)
     for (int i = 0; i < grids.size(); i++)
     {
         vector<float> D1hist = grids[i]->getD1hist(D1min, D1max, bins);
-        vector<float> D2hist = grids[i]->getD2hist(D2min, D2max, bins);
-        vector<float> D3hist = grids[i]->getD3hist(D3min, D3max, bins);
-        vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
-        vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
+        vector<float> D3hist = Grid::getD3hist(D3min, D3max, bins, "temp/" + names[i] + ".csv");
+        vector<float> D4hist = Grid::getD4hist(D4min, D4max, bins, "temp/" + names[i] + ".csv");
+        vector<float> A3hist = Grid::getA3hist(A3min, A3max, bins, "temp/" + names[i] + ".csv");
+        vector<float> D2hist = Grid::getD2hist(D2min, D2max, bins, "temp/" + names[i] + ".csv");
 
         filtout << names[i] << ";";
 
@@ -462,6 +462,7 @@ void featureExtractStandardized(string input)
     vector<string> names;
     vector<string> shapes;
     vector<float> SAs, COs, BBVs, DIAs, ECCs;
+    int iterations = 1000000;
 
     for (const auto& entry : fs::directory_iterator(input))
     {
@@ -472,15 +473,18 @@ void featureExtractStandardized(string input)
             //shapes.push_back(shape);
             string file = fl.path().string();
             string suffix = ".off";
+            string name;
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
                 continue;
             if (file.find("/") <= size(file))
             {
-                names.push_back(file.substr(file.find_last_of("/") + 1));
+                name = file.substr(file.find_last_of("/") + 1);
+                names.push_back(name);
             }
             else
             {
-                names.push_back(file.substr(file.find_last_of("\\") + 1));
+                name = file.substr(file.find_last_of("\\") + 1);
+                names.push_back(name);
             }
             string shape = folder.substr(3);
             shapes.push_back(shape);
@@ -492,25 +496,25 @@ void featureExtractStandardized(string input)
             if (grid->D1max > D1max)
                 D1max = grid->D1max;
 
-            grid->calculateD2(1000000);
+            grid->calculateD2(iterations);
             if (grid->D2min < D2min)
                 D2min = grid->D2min;
             if (grid->D2max > D2max)
                 D2max = grid->D2max;
 
-            grid->calculateD3(1000000);
+            grid->calculateD3(iterations);
             if (grid->D3min < D3min)
                 D3min = grid->D3min;
             if (grid->D3max > D3max)
                 D3max = grid->D3max;
 
-            grid->calculateD4(1000000);
+            grid->calculateD4(iterations);
             if (grid->D4min < D4min)
                 D4min = grid->D4min;
             if (grid->D4max > D4max)
                 D4max = grid->D4max;
 
-            grid->calculateA3(1000000);
+            grid->calculateA3(iterations);
             if (grid->A3min < A3min)
                 A3min = grid->A3min;
             if (grid->A3max > A3max)
@@ -522,11 +526,13 @@ void featureExtractStandardized(string input)
             DIAs.push_back(grid->calculateDiameter());
             ECCs.push_back(grid->calculateEccentricity());
 
-            grids.push_back(grid);
+            //grid->outputHist("temp/" + name + ".csv", iterations);
+
+            delete(grid);
         }
     }
 
-    for (int i = 0; i < grids.size(); i++)
+    for (int i = 0; i < SAs.size(); i++)
     {
         SAavg += SAs[i];
         COavg += COs[i];
@@ -535,13 +541,13 @@ void featureExtractStandardized(string input)
         ECCavg += ECCs[i];
     }
 
-    SAavg /= grids.size();
-    COavg /= grids.size();
-    BBVavg /= grids.size();
-    DIAavg /= grids.size();
-    ECCavg /= grids.size();
+    SAavg /= SAs.size();
+    COavg /= COs.size();
+    BBVavg /= BBVs.size();
+    DIAavg /= DIAs.size();
+    ECCavg /= ECCs.size();
 
-    for (int i = 0; i < grids.size(); i++)
+    for (int i = 0; i < SAs.size(); i++)
     {
         SAsd += pow(SAs[i] - SAavg, 2);
         COsd += pow(COs[i] - COavg, 2);
@@ -550,11 +556,11 @@ void featureExtractStandardized(string input)
         ECCsd += pow(ECCs[i] - ECCavg, 2);
     }
 
-    SAsd = sqrt(SAsd / grids.size());
-    COsd = sqrt(COsd / grids.size());
-    BBVsd = sqrt(BBVsd / grids.size());
-    DIAsd = sqrt(DIAsd / grids.size());
-    ECCsd = sqrt(ECCsd / grids.size());
+    SAsd = sqrt(SAsd / SAs.size());
+    COsd = sqrt(COsd / COs.size());
+    BBVsd = sqrt(BBVsd / BBVs.size());
+    DIAsd = sqrt(DIAsd / DIAs.size());
+    ECCsd = sqrt(ECCsd / ECCs.size());
 
     fstream filtout;
     filtout.open("outputStand.csv", ios::out);
@@ -563,13 +569,15 @@ void featureExtractStandardized(string input)
     filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
     filtout << "name;Surface Area;Compactness;Bounding Box Volume;Diameter;Eccentricity;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D1-11;D1-12;D1-13;D1-14;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D2-11;D2-12;D2-13;D2-14;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D3-11;D3-12;D3-13;D3-14;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;D4-11;D4-12;D4-13;D4-14;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10;A3-11;A3-12;A3-13;A3-14" << endl;
 
-    for (int i = 0; i < grids.size(); i++)
+    for (int i = 0; i < SAs.size(); i++)
     {
-        vector<float> D1hist = grids[i]->getD1hist(D1min, D1max, bins);
-        vector<float> D2hist = grids[i]->getD2hist(D2min, D2max, bins);
-        vector<float> D3hist = grids[i]->getD3hist(D3min, D3max, bins);
-        vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
-        vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
+        vector<vector<float>> hists = Grid::calcHists(D1min, D1max, D2min, D2max, D3min, D3max, D4min, D4max, A3min, A3max, bins, "temp/" + names[i] + ".csv");
+
+        //vector<float> D1hist = Grid::getD1hist(D1min, D1max, bins, "temp/" + names[i] + ".csv");
+        //vector<float> D3hist = Grid::getD3hist(D3min, D3max, bins, "temp/" + names[i] + ".csv");
+        //vector<float> D4hist = Grid::getD4hist(D4min, D4max, bins, "temp/" + names[i] + ".csv");
+        //vector<float> A3hist = Grid::getA3hist(A3min, A3max, bins, "temp/" + names[i] + ".csv");
+        //vector<float> D2hist = Grid::getD2hist(D2min, D2max, bins, "temp/" + names[i] + ".csv");
 
         filtout << names[i]  + "/" + shapes[i] << ";";
 
@@ -581,23 +589,23 @@ void featureExtractStandardized(string input)
 
         for (int j = 0; j < bins; j++)
         {
-            filtout << D1hist[j] << ";";
+            filtout << hists[0][j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << D2hist[j] << ";";
+            filtout << hists[1][j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << D3hist[j] << ";";
+            filtout << hists[2][j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << D4hist[j] << ";";
+            filtout << hists[3][j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << A3hist[j] << ";";
+            filtout << hists[4][j] << ";";
         }
 
         filtout << endl;
