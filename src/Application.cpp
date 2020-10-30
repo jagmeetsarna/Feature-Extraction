@@ -1,5 +1,5 @@
 //#include <GLEW/include/GL/glew.h>
-//#include <GL/glut.h>
+#include <GL/glut.h>
 #include <GLFW/glfw3.h>
 #include <ANN/ANN.h>
 #include <filesystem>
@@ -17,6 +17,7 @@
 #include "..\header\Grid.h"
 #include "..\header\FilterItem.h"
 #include "..\header\OFFReader.h"
+#include "..\header\Renderer.h"
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -25,6 +26,7 @@ void loadFilter();
 string fileName;
 
 vector<pair<string, vector<float>>> feature_vectors;
+vector<Grid> result_grids;
 
 int drawing_style = 0;
 const int FILTER_SIZE = 250;
@@ -49,7 +51,7 @@ int num_entries = 0;
 
 
 Grid* grid = 0;
-//Renderer renderer;
+Renderer renderer;
 
 FilterItem* fis;
 
@@ -67,7 +69,7 @@ void mkdir(const char* dir)
 
 void draw()												                //Render the 3D mesh (GLUT callback function)
 {
-    //renderer.draw(*grid);
+    renderer.draw(*grid);
 }
 
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
@@ -108,28 +110,6 @@ void keyboard(unsigned char c, int, int)					//Callback for keyboard events:
     {
     case ' ':											    // space:   Toggle through the various drawing styles of the mesh renderer
     {
-        break;
-    }
-    /*case 'o':
-    {
-        cout << "Please enter a name for the file" << endl;
-        string fileName;
-        cin >> fileName;
-        outputFilter(fileName);
-        break;
-    }*/
-    case 's':
-    {
-        cout << "Please enter a folder to scan" << endl;
-        string fileName;
-        cin >> fileName;
-        scanFolder(fileName);
-        break;
-    }
-    case 'l':
-    {
-        cout << "Loading from output file" << endl;
-        loadFilter();
         break;
     }
     }
@@ -576,7 +556,7 @@ void featureExtractStandardized(string input)
         vector<float> D4hist = grids[i]->getD4hist(D4min, D4max, bins);
         vector<float> A3hist = grids[i]->getA3hist(A3min, A3max, bins);
 
-        filtout << names[i]  + "/" + shapes[i] << ";";
+        filtout << shapes[i] + "/" + names[i] << ";";
 
         filtout << standardize(SAs[i], SAavg, SAsd) << ";";
         filtout << standardize(COs[i], COavg, COsd) << ";";
@@ -608,8 +588,6 @@ void featureExtractStandardized(string input)
         filtout << endl;
     }
     filtout.close();
-
-    //loadDB("outputStand.csv");
 }
 
 float cosineSimilarity(vector<float> s1, vector<float> s2)
@@ -752,8 +730,9 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         cout << "#############" << endl;
     }
     sort(result.begin(), result.end(), sortbysec);
-    vector<pair<string, float>> output(result.begin(), result.begin() + 10);
-    delete query_grid;
+    vector<pair<string, float>> output(result.begin(), result.begin() + K);
+    grid = get<0>(tup);
+    //delete query_grid;
     return output;
 }
 
@@ -862,6 +841,19 @@ void performEvaluation(int K) {
 
 void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
 
+    glutInit(&argc, argv);								                //Initialize the GLUT toolkit
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    //Ask GLUT to create next windows with a RGB framebuffer and a Z-buffer too
+    glutInitWindowSize(500, 500);							            //Tell GLUT how large are the windows we want to create next
+    glutCreateWindow(fileName.c_str());	                                //Create our window
+
+    //glutMouseFunc(mouseclick);							                //Bind the mouse click and mouse drag (click-and-move) events to callbacks. This allows us
+    //glutMotionFunc(mousemotion);
+    glutKeyboardFunc(keyboard);
+    glutDisplayFunc(draw);
+    //glutReshapeFunc(viewing);
+    glutMainLoop();
+
 }
 
 int main(int argc, char* argv[])
@@ -886,6 +878,10 @@ int main(int argc, char* argv[])
         string file_name;
         cin >> file_name;
         vector<pair<string, float>> result = startNewQuery(file_name, 10, true);
+
+        for (int i = 0; i < result.size(); i++) {
+            cout << result[i].first << endl;
+        }
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
