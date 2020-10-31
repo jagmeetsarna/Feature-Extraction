@@ -97,6 +97,13 @@ void draw5()
     renderer.draw(*grid_5);
 }
 
+
+void renderString(float x, float y, const unsigned char* string)
+{
+    glRasterPos2f(x, y);
+    glutBitmapLength(GLUT_BITMAP_HELVETICA_10, string);
+}
+
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
 {
     return (a.second < b.second);
@@ -295,7 +302,7 @@ float eucleanDist(vector<float> s1, vector<float> s2)
 
     for (int i = 0; i < s1.size(); i++)
     {
-        distance += pow((s1[i] - s2[i]), 2.0);
+        distance += sqrt(pow((s1[i] - s2[i]), 2.0));
     }
    
     return distance;
@@ -312,10 +319,10 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
 
             float val = pow((s1[i] - s2[j]), 2.0);
             if (i == j) {
-                distance += pow((s1[i] - s2[j]), 2.0) * w2;
+                distance += sqrt(pow((s1[i] - s2[j]), 2.0) * w2);
             }
             else if (abs(i - j) == 1) {
-                distance += pow((s1[i] - s2[j]), 2.0) * w1;
+                distance += sqrt(pow((s1[i] - s2[j]), 2.0) * w1);
             }
         }
     }
@@ -638,8 +645,12 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     vector<float> ann_vector;
 
     tuple tup = openFile(file_name);
+
+    int index = file_name.find_last_of("\\/");
+    string name = file_name.substr(index+1);
     Grid* query_grid = get<0>(tup);
     ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
+    query_grid->name = name;
 
     /*float s = query_grid->calculateSurfaceArea();
     float r = query_grid->calculateSphericity();
@@ -724,7 +735,7 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         distance += crossBinDist(vec_h4, query_vector_h4) * w_h;
         distance += crossBinDist(vec_h5, query_vector_h5) * w_h;
 
-        distance = sqrt(distance);                                   // To correctly compute Euclidean
+        //distance = sqrt(distance);                                   // To correctly compute Euclidean
 
 
         int index = get<0>(feature_vectors[i]).find_last_of("\\/");
@@ -759,6 +770,7 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + K);
     grid_Q = get<0>(tup);
+    grid_Q->name = name;
     delete query_grid;
     return output;
 }
@@ -891,19 +903,19 @@ void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> resu
     glutPositionWindow((x_center/2) - 150, 100);
     glutDisplayFunc(drawQ);
 
-    glutCreateWindow("Result 1");
+    glutCreateWindow(("d=" + to_string(result[0].second)).c_str());
     glutPositionWindow((x_center / 5)-150, 500);
     glutDisplayFunc(draw1);
-    glutCreateWindow("Result 2");
+    glutCreateWindow(("d=" + to_string(result[1].second)).c_str());
     glutPositionWindow((x_center / 5)+150, 500);
     glutDisplayFunc(draw2);
-    glutCreateWindow("Result 3");
+    glutCreateWindow(("d=" + to_string(result[2].second)).c_str());
     glutPositionWindow((x_center / 5)+450, 500);
     glutDisplayFunc(draw3);
-    glutCreateWindow("Result 4");
+    glutCreateWindow(("d=" + to_string(result[3].second)).c_str());
     glutPositionWindow((x_center / 5)+750, 500);
     glutDisplayFunc(draw4);
-    glutCreateWindow("Result 5");
+    glutCreateWindow(("d=" + to_string(result[4].second)).c_str());
     glutPositionWindow((x_center / 5)+1050, 500);
     glutDisplayFunc(draw5);
 
@@ -933,10 +945,6 @@ int main(int argc, char* argv[])
         string file_name;
         cin >> file_name;
         vector<pair<string, float>> result = startNewQuery(file_name, 10, true);
-
-        for (int i = 0; i < result.size(); i++) {
-            cout << result[i].first << endl;
-        }
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
