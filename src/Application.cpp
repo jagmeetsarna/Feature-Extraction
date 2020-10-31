@@ -49,8 +49,13 @@ float w_f = 0.05, w_h = 0.19;
 map<string, int> db_count;
 int num_entries = 0;
 
-
 Grid* grid = 0;
+Grid* grid_Q = 0;
+Grid* grid_1 = 0;
+Grid* grid_2 = 0;
+Grid* grid_3 = 0;
+Grid* grid_4 = 0;
+Grid* grid_5 = 0;
 Renderer renderer;
 
 FilterItem* fis;
@@ -67,9 +72,29 @@ void mkdir(const char* dir)
     delete[] ndb;
 }
 
-void draw()												                //Render the 3D mesh (GLUT callback function)
+void drawQ()
 {
-    renderer.draw(*grid);
+    renderer.draw(*grid_Q);
+}
+void draw1()
+{
+    renderer.draw(*grid_1);
+}
+void draw2()
+{
+    renderer.draw(*grid_2);
+}
+void draw3()
+{
+    renderer.draw(*grid_3);
+}
+void draw4()
+{
+    renderer.draw(*grid_4);
+}
+void draw5()
+{
+    renderer.draw(*grid_5);
 }
 
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
@@ -702,9 +727,11 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         distance = sqrt(distance);                                   // To correctly compute Euclidean
 
 
-        string name = get<0>(feature_vectors[i]);
+        int index = get<0>(feature_vectors[i]).find_last_of("\\/");
+        string shape = get<0>(feature_vectors[i]).substr(index + 1);
+        string name = get<0>(feature_vectors[i]).substr(0, index);
 
-        pair<string, float> p2 = make_pair(name, distance);
+        pair<string, float> p2 = make_pair((shape+"/"+name), distance);
         result.push_back(p2);
     }
 
@@ -731,8 +758,8 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     }
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + K);
-    grid = get<0>(tup);
-    //delete query_grid;
+    grid_Q = get<0>(tup);
+    delete query_grid;
     return output;
 }
 
@@ -841,17 +868,45 @@ void performEvaluation(int K) {
 
 void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
 
-    glutInit(&argc, argv);								                //Initialize the GLUT toolkit
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    //Ask GLUT to create next windows with a RGB framebuffer and a Z-buffer too
-    glutInitWindowSize(500, 500);							            //Tell GLUT how large are the windows we want to create next
-    glutCreateWindow(fileName.c_str());	                                //Create our window
+    // Read in the query result files
+    tuple tup = openFile("DB/" + result[0].first);
+    grid_1 = get<0>(tup);
+    tup = openFile("DB/" + result[1].first);
+    grid_2 = get<0>(tup);
+    tup = openFile("DB/" + result[2].first);
+    grid_3 = get<0>(tup);
+    tup = openFile("DB/" + result[3].first);
+    grid_4 = get<0>(tup);
+    tup = openFile("DB/" + result[4].first);
+    grid_5 = get<0>(tup);
 
-    //glutMouseFunc(mouseclick);							                //Bind the mouse click and mouse drag (click-and-move) events to callbacks. This allows us
-    //glutMotionFunc(mousemotion);
-    glutKeyboardFunc(keyboard);
-    glutDisplayFunc(draw);
-    //glutReshapeFunc(viewing);
+    int x_center = glutGet(GLUT_SCREEN_WIDTH);
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(300, 300);
+    glutInitWindowPosition(0, 0);
+
+    glutCreateWindow("Query Shape");
+    glutPositionWindow((x_center/2) - 150, 100);
+    glutDisplayFunc(drawQ);
+
+    glutCreateWindow("Result 1");
+    glutPositionWindow((x_center / 5)-150, 500);
+    glutDisplayFunc(draw1);
+    glutCreateWindow("Result 2");
+    glutPositionWindow((x_center / 5)+150, 500);
+    glutDisplayFunc(draw2);
+    glutCreateWindow("Result 3");
+    glutPositionWindow((x_center / 5)+450, 500);
+    glutDisplayFunc(draw3);
+    glutCreateWindow("Result 4");
+    glutPositionWindow((x_center / 5)+750, 500);
+    glutDisplayFunc(draw4);
+    glutCreateWindow("Result 5");
+    glutPositionWindow((x_center / 5)+1050, 500);
+    glutDisplayFunc(draw5);
+
     glutMainLoop();
 
 }
