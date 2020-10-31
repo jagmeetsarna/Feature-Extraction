@@ -784,6 +784,7 @@ void performEvaluation(int K) {
     vector<float> total_accuracies;
     vector<float> total_TPRs;
     vector<float> total_PPVs;
+    vector<float> total_LRs;
     vector<string> class_names;
 
 
@@ -791,6 +792,7 @@ void performEvaluation(int K) {
     float total_acc = 0.0;
     float total_TPR = 0.0;
     float total_PPV = 0.0;
+    float total_LR = 0.0;
     int total_queries = 0;
     int total_TP = 0;
     int total_TN = 0;
@@ -807,6 +809,7 @@ void performEvaluation(int K) {
         float current_PPV = 0.0;
         float current_TPR = 0.0;
         int current_queries = 0;
+        float current_LR = 0.0;
         total_queries += 1;
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
@@ -825,11 +828,14 @@ void performEvaluation(int K) {
 
             for (int i = 0; i < 10; i++) {
                 int index = result[i].first.find_last_of("\\/");
-                string result_shape = result[i].first.substr(index + 1);
+                string result_shape = result[i].first.substr(0,index);
                 cout << query_shape + ", " + result_shape << endl;;
                 if (query_shape == result_shape) {
                     current_TP += 1;
                     total_TP += 1;
+                    if (current_FP == 0) {
+                        current_LR += 1;
+                    }
                 }
                 else {
                     current_FP += 1;
@@ -845,17 +851,21 @@ void performEvaluation(int K) {
         current_acc /= current_queries;
         current_TPR /= current_queries;
         current_PPV /= current_queries;
+        current_LR /= current_queries;
         total_accuracies.push_back(current_acc);
         total_TPRs.push_back(current_TPR);
         total_PPVs.push_back(current_PPV);
+        total_LRs.push_back(current_LR);
         total_acc += current_acc;
         total_TPR += current_TPR;
         total_PPV += current_PPV;
+        total_LR += current_LR;
     }
 
     total_acc /= total_queries;
     total_TPR /= total_queries;
     total_PPV /= total_queries;
+    total_LR /= total_queries;
     cout << total_acc << endl;
     cout << total_TPR << endl;
     cout << total_PPV << endl;
@@ -863,17 +873,18 @@ void performEvaluation(int K) {
     fstream evout;
     evout.open("evaluationOutput.csv", ios::out);
     evout << "sep=;" << endl;
-    evout << "shape class;average accuracy;average TPR;average PPV" << endl;
+    evout << "shape class;average accuracy;average TPR;average PPV;average LR" << endl;
     for (int i = 0; i < total_accuracies.size(); i++) {
         evout << class_names[i] << ";";
         evout << total_accuracies[i] << ";";
         evout << total_TPRs[i] << ";";
-        evout << total_PPVs[i] << endl;
+        evout << total_PPVs[i] << ";";
+        evout << total_LRs[i] << endl;
     }
 
     evout << endl;
-    evout << "overall accuracy;overall TPR;overall PPV" << endl;
-    evout << total_acc << ";" << total_TPR << ";" << total_PPV << endl;
+    evout << "overall accuracy;overall TPR;overall PPV;overall LR" << endl;
+    evout << total_acc << ";" << total_TPR << ";" << total_PPV << ";" << total_LR<< endl;
 
 
 }
