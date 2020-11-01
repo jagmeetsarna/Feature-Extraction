@@ -1,8 +1,8 @@
 #include "..\header\Renderer.h"
 #include "..\header\Grid.h"
-#include <GL/glut.h>										//GLUT library
+//#include <GL/glut.h>										//GLUT library
 
-void Renderer::drawAxis() {
+/*void Renderer::drawAxis() {
 	glBegin(GL_LINES);
 
 	glColor3f(1.0, 0.0, 0.0);
@@ -34,21 +34,6 @@ void Renderer::draw(Grid& g_)								//Draw an unstructured grid, in the style i
 	{														//Currently only implemented the grid version
 	case DRAW_GRID:
 		drawAxis();
-
-		// //
-		/*glColor3f(0.3, 0.3, 0.3);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-		glShadeModel(GL_SMOOTH);
-		glPointSize(3);
-		centroids = g.getCellCentroids();
-		glBegin(GL_POINTS);
-		for (int i = 0; i < centroids.size(); i++) {
-			glVertex3f(centroids[i].x, centroids[i].y, centroids[i].z);
-		}*/
-		// //
-
 		glColor3f(1, 1, 1);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		drawGrid(g);
@@ -218,7 +203,7 @@ void Renderer::drawC1Cells(Grid& g)	//Draw 'g' with smooth shading (bilinear int
 		}
 		glEnd();                                        //4.   Finish rendering current cell
 	}
-}
+}*/
 
 
 

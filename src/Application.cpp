@@ -1,7 +1,7 @@
 //#include <GLEW/include/GL/glew.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
 #include <GLFW/glfw3.h>
-#include <ANN/ANN.h>
+//#include <ANN/ANN.h>
 #include <filesystem>
 #include <iostream>
 #include <io.h>
@@ -33,7 +33,7 @@ const int FILTER_SIZE = 250;
 
 int N = 1000000;                            // Number of computations per feature
 
-ANNkd_tree* tree;                           // kd search tree for ANN
+//ANNkd_tree* tree;                           // kd search tree for ANN
 
 
 float D1min = FLT_MAX, D2min = FLT_MAX, D3min = FLT_MAX, D4min = FLT_MAX, A3min = FLT_MAX, SAmin = FLT_MAX, COmin = FLT_MAX, BBVmin = FLT_MAX, DIAmin = FLT_MAX, ECCmin = FLT_MAX;
@@ -56,7 +56,7 @@ Grid* grid_2 = 0;
 Grid* grid_3 = 0;
 Grid* grid_4 = 0;
 Grid* grid_5 = 0;
-Renderer renderer;
+//Renderer renderer;
 
 FilterItem* fis;
 
@@ -72,7 +72,7 @@ void mkdir(const char* dir)
     delete[] ndb;
 }
 
-void drawQ()
+/*void drawQ()
 {
     renderer.draw(*grid_Q);
 }
@@ -95,14 +95,7 @@ void draw4()
 void draw5()
 {
     renderer.draw(*grid_5);
-}
-
-
-void renderString(float x, float y, const unsigned char* string)
-{
-    glRasterPos2f(x, y);
-    glutBitmapLength(GLUT_BITMAP_HELVETICA_10, string);
-}
+}*/
 
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
 {
@@ -205,12 +198,12 @@ void loadDB(string file)
 
     vector<string> row;
     vector<float> features;
-    ANNpointArray data_points;
+    //ANNpointArray data_points;
     string line, word, temp, name, shape_class;
     float val;
 
-    ANNpoint* pa; // an array of points
-    ANNdist* ANNdistArray; // an array of squared distances
+    //ANNpoint* pa; // an array of points
+    //ANNdist* ANNdistArray; // an array of squared distances
 
     getline(fin, line);
 
@@ -283,9 +276,9 @@ void loadDB(string file)
 
     int maxPoints = feature_vectors.size();
     int dims = row.size() - 1;
-    data_points = annAllocPts(maxPoints, dims);
+    //data_points = annAllocPts(maxPoints, dims);
 
-    for (int i = 0; i < maxPoints; i++) {
+    /*for (int i = 0; i < maxPoints; i++) {
         ANNpoint p = annAllocPt(dims);
         for (int j = 0; j < dims; j++) {
             p[j] = feature_vectors[i].second[j];
@@ -293,7 +286,7 @@ void loadDB(string file)
         data_points[i] = p;
     }
 
-    tree = new ANNkd_tree(data_points, maxPoints, dims);
+    tree = new ANNkd_tree(data_points, maxPoints, dims);*/
 }
 
 float eucleanDist(vector<float> s1, vector<float> s2)
@@ -649,7 +642,7 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     int index = file_name.find_last_of("\\/");
     string name = file_name.substr(index+1);
     Grid* query_grid = get<0>(tup);
-    ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
+    //ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
     query_grid->name = name;
 
     /*float s = query_grid->calculateSurfaceArea();
@@ -746,7 +739,7 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         result.push_back(p2);
     }
 
-    if (ann_flag) {
+    /*if (ann_flag) {
         //ANN QUERY
         for (int i = 0; i < ann_vector.size(); i++) {
             query_point[i] = ann_vector[i];
@@ -766,7 +759,7 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
             cout << endl;
         }
         cout << "#############" << endl;
-    }
+    }*/
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + K);
     grid_Q = get<0>(tup);
@@ -901,7 +894,7 @@ void performEvaluation(int K) {
 void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
 
     // Read in the query result files
-    tuple tup = openFile("DB/" + result[0].first);
+   /* tuple tup = openFile("DB/" + result[0].first);
     grid_1 = get<0>(tup);
     tup = openFile("DB/" + result[1].first);
     grid_2 = get<0>(tup);
@@ -939,7 +932,7 @@ void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> resu
     glutPositionWindow((x_center / 5)+1050, 500);
     glutDisplayFunc(draw5);
 
-    glutMainLoop();
+    glutMainLoop();*/
 
 }
 
