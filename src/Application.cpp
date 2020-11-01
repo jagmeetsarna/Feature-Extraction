@@ -49,8 +49,13 @@ float w_f = 0.05, w_h = 0.19;
 map<string, int> db_count;
 int num_entries = 0;
 
-
 Grid* grid = 0;
+Grid* grid_Q = 0;
+Grid* grid_1 = 0;
+Grid* grid_2 = 0;
+Grid* grid_3 = 0;
+Grid* grid_4 = 0;
+Grid* grid_5 = 0;
 Renderer renderer;
 
 FilterItem* fis;
@@ -67,9 +72,36 @@ void mkdir(const char* dir)
     delete[] ndb;
 }
 
-void draw()												                //Render the 3D mesh (GLUT callback function)
+void drawQ()
 {
-    renderer.draw(*grid);
+    renderer.draw(*grid_Q);
+}
+void draw1()
+{
+    renderer.draw(*grid_1);
+}
+void draw2()
+{
+    renderer.draw(*grid_2);
+}
+void draw3()
+{
+    renderer.draw(*grid_3);
+}
+void draw4()
+{
+    renderer.draw(*grid_4);
+}
+void draw5()
+{
+    renderer.draw(*grid_5);
+}
+
+
+void renderString(float x, float y, const unsigned char* string)
+{
+    glRasterPos2f(x, y);
+    glutBitmapLength(GLUT_BITMAP_HELVETICA_10, string);
 }
 
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
@@ -270,7 +302,7 @@ float eucleanDist(vector<float> s1, vector<float> s2)
 
     for (int i = 0; i < s1.size(); i++)
     {
-        distance += pow((s1[i] - s2[i]), 2.0);
+        distance += sqrt(pow((s1[i] - s2[i]), 2.0));
     }
    
     return distance;
@@ -287,10 +319,10 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
 
             float val = pow((s1[i] - s2[j]), 2.0);
             if (i == j) {
-                distance += pow((s1[i] - s2[j]), 2.0) * w2;
+                distance += sqrt(pow((s1[i] - s2[j]), 2.0) * w2);
             }
             else if (abs(i - j) == 1) {
-                distance += pow((s1[i] - s2[j]), 2.0) * w1;
+                distance += sqrt(pow((s1[i] - s2[j]), 2.0) * w1);
             }
         }
     }
@@ -621,8 +653,12 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     vector<float> ann_vector;
 
     tuple tup = openFile(file_name);
+
+    int index = file_name.find_last_of("\\/");
+    string name = file_name.substr(index+1);
     Grid* query_grid = get<0>(tup);
     ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
+    query_grid->name = name;
 
     /*float s = query_grid->calculateSurfaceArea();
     float r = query_grid->calculateSphericity();
@@ -707,12 +743,14 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         distance += crossBinDist(vec_h4, query_vector_h4) * w_h;
         distance += crossBinDist(vec_h5, query_vector_h5) * w_h;
 
-        distance = sqrt(distance);                                   // To correctly compute Euclidean
+        //distance = sqrt(distance);                                   // To correctly compute Euclidean
 
 
-        string name = get<0>(feature_vectors[i]);
+        int index = get<0>(feature_vectors[i]).find_last_of("\\/");
+        string shape = get<0>(feature_vectors[i]).substr(index + 1);
+        string name = get<0>(feature_vectors[i]).substr(0, index);
 
-        pair<string, float> p2 = make_pair(name, distance);
+        pair<string, float> p2 = make_pair((shape+"/"+name), distance);
         result.push_back(p2);
     }
 
@@ -739,8 +777,9 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     }
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + K);
-    grid = get<0>(tup);
-    //delete query_grid;
+    grid_Q = get<0>(tup);
+    grid_Q->name = name;
+    delete query_grid;
     return output;
 }
 
@@ -753,6 +792,7 @@ void performEvaluation(int K) {
     vector<float> total_accuracies;
     vector<float> total_TPRs;
     vector<float> total_PPVs;
+    vector<float> total_LRs;
     vector<string> class_names;
 
     cout << "#############" << endl;
@@ -769,6 +809,7 @@ void performEvaluation(int K) {
     float total_acc = 0.0;
     float total_TPR = 0.0;
     float total_PPV = 0.0;
+    float total_LR = 0.0;
     int total_queries = 0;
     int total_TP = 0;
     int total_TN = 0;
@@ -785,6 +826,7 @@ void performEvaluation(int K) {
         float current_PPV = 0.0;
         float current_TPR = 0.0;
         int current_queries = 0;
+        float current_LR = 0.0;
         total_queries += 1;
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
@@ -803,11 +845,14 @@ void performEvaluation(int K) {
 
             for (int i = 0; i < 10; i++) {
                 int index = result[i].first.find_last_of("\\/");
-                string result_shape = result[i].first.substr(index + 1);
+                string result_shape = result[i].first.substr(0,index);
                 cout << query_shape + ", " + result_shape << endl;;
                 if (query_shape == result_shape) {
                     current_TP += 1;
                     total_TP += 1;
+                    if (current_FP == 0) {
+                        current_LR += 1;
+                    }
                 }
                 else {
                     current_FP += 1;
@@ -823,17 +868,21 @@ void performEvaluation(int K) {
         current_acc /= current_queries;
         current_TPR /= current_queries;
         current_PPV /= current_queries;
+        current_LR /= current_queries;
         total_accuracies.push_back(current_acc);
         total_TPRs.push_back(current_TPR);
         total_PPVs.push_back(current_PPV);
+        total_LRs.push_back(current_LR);
         total_acc += current_acc;
         total_TPR += current_TPR;
         total_PPV += current_PPV;
+        total_LR += current_LR;
     }
 
     total_acc /= total_queries;
     total_TPR /= total_queries;
     total_PPV /= total_queries;
+    total_LR /= total_queries;
     cout << total_acc << endl;
     cout << total_TPR << endl;
     cout << total_PPV << endl;
@@ -841,34 +890,63 @@ void performEvaluation(int K) {
     fstream evout;
     evout.open("evaluationOutput.csv", ios::out);
     evout << "sep=;" << endl;
-    evout << "shape class;average accuracy;average TPR;average PPV" << endl;
+    evout << "shape class;average accuracy;average TPR;average PPV;average LR" << endl;
     for (int i = 0; i < total_accuracies.size(); i++) {
         evout << class_names[i] << ";";
         evout << total_accuracies[i] << ";";
         evout << total_TPRs[i] << ";";
-        evout << total_PPVs[i] << endl;
+        evout << total_PPVs[i] << ";";
+        evout << total_LRs[i] << endl;
     }
 
     evout << endl;
-    evout << "overall accuracy;overall TPR;overall PPV" << endl;
-    evout << total_acc << ";" << total_TPR << ";" << total_PPV << endl;
+    evout << "overall accuracy;overall TPR;overall PPV;overall LR" << endl;
+    evout << total_acc << ";" << total_TPR << ";" << total_PPV << ";" << total_LR<< endl;
 
 
 }
 
 void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
 
-    glutInit(&argc, argv);								                //Initialize the GLUT toolkit
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    //Ask GLUT to create next windows with a RGB framebuffer and a Z-buffer too
-    glutInitWindowSize(500, 500);							            //Tell GLUT how large are the windows we want to create next
-    glutCreateWindow(fileName.c_str());	                                //Create our window
+    // Read in the query result files
+    tuple tup = openFile("DB/" + result[0].first);
+    grid_1 = get<0>(tup);
+    tup = openFile("DB/" + result[1].first);
+    grid_2 = get<0>(tup);
+    tup = openFile("DB/" + result[2].first);
+    grid_3 = get<0>(tup);
+    tup = openFile("DB/" + result[3].first);
+    grid_4 = get<0>(tup);
+    tup = openFile("DB/" + result[4].first);
+    grid_5 = get<0>(tup);
 
-    //glutMouseFunc(mouseclick);							                //Bind the mouse click and mouse drag (click-and-move) events to callbacks. This allows us
-    //glutMotionFunc(mousemotion);
-    glutKeyboardFunc(keyboard);
-    glutDisplayFunc(draw);
-    //glutReshapeFunc(viewing);
+    int x_center = glutGet(GLUT_SCREEN_WIDTH);
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(300, 300);
+    glutInitWindowPosition(0, 0);
+
+    glutCreateWindow("Query Shape");
+    glutPositionWindow((x_center/2) - 150, 100);
+    glutDisplayFunc(drawQ);
+
+    glutCreateWindow(("d=" + to_string(result[0].second)).c_str());
+    glutPositionWindow((x_center / 5)-150, 500);
+    glutDisplayFunc(draw1);
+    glutCreateWindow(("d=" + to_string(result[1].second)).c_str());
+    glutPositionWindow((x_center / 5)+150, 500);
+    glutDisplayFunc(draw2);
+    glutCreateWindow(("d=" + to_string(result[2].second)).c_str());
+    glutPositionWindow((x_center / 5)+450, 500);
+    glutDisplayFunc(draw3);
+    glutCreateWindow(("d=" + to_string(result[3].second)).c_str());
+    glutPositionWindow((x_center / 5)+750, 500);
+    glutDisplayFunc(draw4);
+    glutCreateWindow(("d=" + to_string(result[4].second)).c_str());
+    glutPositionWindow((x_center / 5)+1050, 500);
+    glutDisplayFunc(draw5);
+
     glutMainLoop();
 
 }
@@ -895,10 +973,6 @@ int main(int argc, char* argv[])
         string file_name;
         cin >> file_name;
         vector<pair<string, float>> result = startNewQuery(file_name, 10, true);
-
-        for (int i = 0; i < result.size(); i++) {
-            cout << result[i].first << endl;
-        }
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
