@@ -19,7 +19,7 @@ public:
 		DRAW_GRID_CELLS						//Draw cells with grid ontop
 	};
 
-	Renderer() : draw_style(DRAW_GRID) {}
+	Renderer() : draw_style(DRAW_C0_CELLS) {}
 
 	void			draw(Grid&);
 
@@ -36,7 +36,7 @@ protected:
 	void drawC0Cells(Grid&);
 	void drawC1Cells(Grid&);
 
-	DRAW_STYLE		draw_style;
+	DRAW_STYLE		draw_style = DRAW_C1_CELLS;
 };
 
 
