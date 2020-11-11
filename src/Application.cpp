@@ -644,7 +644,7 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
-vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag, float w1, float w2) {
+vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag, float w1, float w2, bool eval) {
 
     int numF = feature_vectors.size();
     
@@ -781,14 +781,14 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         cout << "#############" << endl;
         grid_Q = get<0>(tup);
         grid_Q->name = name;
-        delete query_grid;
+        if (eval) delete query_grid;
         return ANNoutput;
     }
     sort(result.begin(), result.end(), sortbysec);
     vector<pair<string, float>> output(result.begin(), result.begin() + max(5,K));
     grid_Q = get<0>(tup);
     grid_Q->name = name;
-    delete query_grid;
+    if (eval) delete query_grid;
     return output;
 }
 
@@ -839,7 +839,7 @@ void performEvaluation(int K, bool ANN, float w1, float w2) {
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
                 continue;
             cout << file << endl;
-            vector<pair<string, float>> result = startNewQuery(file, K, ANN, w1, w2);
+            vector<pair<string, float>> result = startNewQuery(file, K, ANN, w1, w2, true);
             current_queries += 1;
 
             for (int i = 0; i < 10; i++) {
@@ -888,7 +888,8 @@ void performEvaluation(int K, bool ANN, float w1, float w2) {
 
     fstream evout;
     if (ANN) evout.open("evaluationOutputANN.csv", ios::out);
-    else evout.open("evaluationOutput_" + to_string(w1) + "_" + to_string(w2) + ".csv", ios::out);
+    //else evout.open("evaluationOutput_" + to_string(w1) + "_" + to_string(w2) + ".csv", ios::out);
+    else evout.open("evaluationOutput.csv", ios::out);
     evout << "sep=;" << endl;
     evout << "shape class;average accuracy;average TPR;average PPV;average LR" << endl;
     for (int i = 0; i < total_accuracies.size(); i++) {
@@ -966,6 +967,11 @@ void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> resu
 int main(int argc, char* argv[])
 {
 
+    float w1 = 0.1;
+    float w2 = 0.18;
+
+    bool ANN = false;
+
     cout << "Press 'q' to start a new query." << endl;
 
     cout << "Press 'n' to load a new data base without normalization." << endl;
@@ -987,7 +993,16 @@ int main(int argc, char* argv[])
         cin >> file_name;
         cout << "Please enter the amount of shapes to return: " << endl;
         cin >> K;
-        vector<pair<string, float>> result = startNewQuery(file_name, K, false, 0.05, 0.19);
+
+        char ann;
+        cout << "Do you want to use the ANN implementation?" << endl;
+        cout << "y / n" << endl;
+        ann = _getch();
+        while (ann != 'y' && ann != 'n') {
+            ann = _getch();
+        }
+        if (ann == 'y') ANN = true;
+        vector<pair<string, float>> result = startNewQuery(file_name, K, ANN, w1, w2, false);
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
@@ -1017,7 +1032,7 @@ int main(int argc, char* argv[])
     }
     else if (input == 'e') {
         loadDB("outputStand.csv");
-        performEvaluation(10, false, 0.1, 0.18);
+        performEvaluation(10, ANN, w1, w2);
         /*float w1 = 0.05;
         float w2 = 0.19;
         while (w1 > 0.0) {
