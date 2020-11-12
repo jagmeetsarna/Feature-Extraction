@@ -359,6 +359,7 @@ void featureExtractNormalized(string input)
             }
 
             grid = std::get<0>(openFile(file));
+            int iterations = 1000;
             
             grid->calculateD1();
             if (grid->D1min < D1min)
@@ -366,25 +367,25 @@ void featureExtractNormalized(string input)
             if (grid->D1max > D1max)
                 D1max = grid->D1max;
 
-            grid->calculateD2(1000000);
+            grid->calculateD2(iterations);
             if (grid->D2min < D2min)
                 D2min = grid->D2min;
             if (grid->D2max > D2max)
                 D2max = grid->D2max;
 
-            grid->calculateD3(1000000);
+            grid->calculateD3(iterations);
             if (grid->D3min < D3min)
                 D3min = grid->D3min;
             if (grid->D3max > D3max)
                 D3max = grid->D3max;
 
-            grid->calculateD4(1000000);
+            grid->calculateD4(iterations);
             if (grid->D4min < D4min)
                 D4min = grid->D4min;
             if (grid->D4max > D4max)
                 D4max = grid->D4max;
 
-            grid->calculateA3(1000000);
+            grid->calculateA3(iterations);
             if (grid->A3min < A3min)
                 A3min = grid->A3min;
             if (grid->A3max > A3max)
@@ -479,7 +480,7 @@ void featureExtractStandardized(string input)
     vector<string> names;
     vector<string> shapes;
     vector<float> SAs, COs, BBVs, DIAs, ECCs;
-    int iterations = 1000000;
+    int iterations = 1000;
 
     for (const auto& entry : fs::directory_iterator(input))
     {
@@ -549,6 +550,8 @@ void featureExtractStandardized(string input)
         }
     }
 
+    iterations = 1000000;
+
     for (int i = 0; i < SAs.size(); i++)
     {
         SAavg += SAs[i];
@@ -588,7 +591,14 @@ void featureExtractStandardized(string input)
 
     for (int i = 0; i < SAs.size(); i++)
     {
-        vector<vector<float>> hists = Grid::calcHists(D1min, D1max, D2min, D2max, D3min, D3max, D4min, D4max, A3min, A3max, bins, "temp/" + names[i] + ".csv");
+        grid = std::get<0>(openFile(names[i]));
+
+        grid->calculateD1();
+        vector<float> D1hist = grid->getD1hist(D1min, D1max, bins);
+        vector<float> D2hist = grid->getD2hist(D2min, D2max, bins);
+        vector<float> D3hist = grid->getD3hist(D3min, D3max, bins);
+        vector<float> D4hist = grid->getD4hist(D4min, D4max, bins);
+        vector<float> A3hist = grid->getA3hist(A3min, A3max, bins);      
 
         //vector<float> D1hist = Grid::getD1hist(D1min, D1max, bins, "temp/" + names[i] + ".csv");
         //vector<float> D3hist = Grid::getD3hist(D3min, D3max, bins, "temp/" + names[i] + ".csv");
@@ -606,23 +616,23 @@ void featureExtractStandardized(string input)
 
         for (int j = 0; j < bins; j++)
         {
-            filtout << hists[0][j] << ";";
+            filtout << D1hist[j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << hists[1][j] << ";";
+            filtout << D2hist[j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << hists[2][j] << ";";
+            filtout << D3hist[j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << hists[3][j] << ";";
+            filtout << D4hist[j] << ";";
         }
         for (int j = 0; j < bins; j++)
         {
-            filtout << hists[4][j] << ";";
+            filtout << A3hist[j] << ";";
         }
 
         filtout << endl;
