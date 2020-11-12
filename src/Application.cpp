@@ -43,7 +43,7 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
-float w_f = 0.05, w_h = 0.19;
+//float w_f = 0.05, w_h = 0.19;
 
 // Dictionary for the number of shapes in the whole data base
 map<string, int> db_count;
@@ -264,7 +264,7 @@ void loadDB(string file)
         }
         name = row[0];
         int index = name.find_last_of("\\/");
-        string shape_class = name.substr(index + 1);
+        string shape_class = name.substr(0, index);
 
         if (db_count.count(shape_class) == 0) {
             db_count.insert({ shape_class, 0 });
@@ -654,9 +654,12 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
-vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag) {
+vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag, float w1, float w2) {
 
     int numF = feature_vectors.size();
+    
+    float w_f = w1;
+    float w_h = w2;
 
     vector<float> query_vector_f;
     vector<float> query_vector_h1, query_vector_h2, query_vector_h3, query_vector_h4, query_vector_h5;
@@ -757,8 +760,8 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
 
 
         int index = get<0>(feature_vectors[i]).find_last_of("\\/");
-        string shape = get<0>(feature_vectors[i]).substr(index + 1);
-        string name = get<0>(feature_vectors[i]).substr(0, index);
+        string name = get<0>(feature_vectors[i]).substr(index + 1);
+        string shape = get<0>(feature_vectors[i]).substr(0, index);
 
         pair<string, float> p2 = make_pair((shape+"/"+name), distance);
         result.push_back(p2);
@@ -773,29 +776,35 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         ANNdist* dists = new ANNdist[K];
 
         tree->annkSearch(query_point, K, nnIdx, dists, 0);
+        vector<pair<string, float>> ANNoutput;
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING ANN: " << endl;
-        for (int i = 0; i < K; i++) {
+        for (int i = 0; i < max(5, K); i++) {
             int index = nnIdx[i];
             cout << result[index].first << endl;
             cout << "distance: ";
             cout << dists[i] << endl;
             cout << endl;
+            ANNoutput.push_back(make_pair(result[index].first, dists[i]));
         }
         cout << "#############" << endl;
+        grid_Q = get<0>(tup);
+        grid_Q->name = name;
+        delete query_grid;
+        return ANNoutput;
     }
     sort(result.begin(), result.end(), sortbysec);
-    vector<pair<string, float>> output(result.begin(), result.begin() + K);
+    vector<pair<string, float>> output(result.begin(), result.begin() + max(5,K));
     grid_Q = get<0>(tup);
     grid_Q->name = name;
     delete query_grid;
     return output;
 }
 
-void performEvaluation(int K) {
+void performEvaluation(int K, bool ANN, float w1, float w2) {
 
-    loadDB("outputStand.csv");
+    //loadDB("outputStand.csv");
 
     vector<vector<pair<string, float>>> results;
     vector<pair<string, float>> shape_nums;
@@ -804,16 +813,6 @@ void performEvaluation(int K) {
     vector<float> total_PPVs;
     vector<float> total_LRs;
     vector<string> class_names;
-
-    cout << "#############" << endl;
-    cout << "CLOSEST 5 SHAPES USING CUSTOM METRIC: " << endl;
-    for (int i = 0; i < 10; i++) {
-        cout << shape_nums[i].first << endl;
-        cout << "distance: ";
-        cout << shape_nums[i].second << endl;
-        cout << endl;
-    }
-    cout << "#############" << endl;
 
     string folder;
     float total_acc = 0.0;
@@ -850,7 +849,7 @@ void performEvaluation(int K) {
             if (!(file.size() >= suffix.size() && 0 == file.compare(file.size() - suffix.size(), suffix.size(), suffix)))
                 continue;
             cout << file << endl;
-            vector<pair<string, float>> result = startNewQuery(file, K, false);
+            vector<pair<string, float>> result = startNewQuery(file, K, ANN, w1, w2);
             current_queries += 1;
 
             for (int i = 0; i < 10; i++) {
@@ -861,7 +860,7 @@ void performEvaluation(int K) {
                     current_TP += 1;
                     total_TP += 1;
                     if (current_FP == 0) {
-                        current_LR += 1;
+                        current_LR += 1.0;
                     }
                 }
                 else {
@@ -898,7 +897,8 @@ void performEvaluation(int K) {
     cout << total_PPV << endl;
 
     fstream evout;
-    evout.open("evaluationOutput.csv", ios::out);
+    if (ANN) evout.open("evaluationOutputANN.csv", ios::out);
+    else evout.open("evaluationOutput_" + to_string(w1) + "_" + to_string(w2) + ".csv", ios::out);
     evout << "sep=;" << endl;
     evout << "shape class;average accuracy;average TPR;average PPV;average LR" << endl;
     for (int i = 0; i < total_accuracies.size(); i++) {
@@ -919,16 +919,28 @@ void performEvaluation(int K) {
 void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
 
     // Read in the query result files
+    grid_Q->computeFaceNormals();
+    grid_Q->computeVertexNormals();
     tuple tup = openFile("DB/" + result[0].first);
     grid_1 = get<0>(tup);
+    grid_1->computeFaceNormals();
+    grid_1->computeVertexNormals();
     tup = openFile("DB/" + result[1].first);
     grid_2 = get<0>(tup);
+    grid_2->computeFaceNormals();
+    grid_2->computeVertexNormals();
     tup = openFile("DB/" + result[2].first);
     grid_3 = get<0>(tup);
+    grid_3->computeFaceNormals();
+    grid_3->computeVertexNormals();
     tup = openFile("DB/" + result[3].first);
     grid_4 = get<0>(tup);
+    grid_4->computeFaceNormals();
+    grid_4->computeVertexNormals();
     tup = openFile("DB/" + result[4].first);
     grid_5 = get<0>(tup);
+    grid_5->computeFaceNormals();
+    grid_5->computeVertexNormals();
 
     int x_center = glutGet(GLUT_SCREEN_WIDTH);
 
@@ -977,16 +989,19 @@ int main(int argc, char* argv[])
     if (input == 'q') {
 
         string db_file;
+        int K;
         loadDB("outputStand.csv");
         //loadDB("outputq.csv");
-        cout << "Please specify the query file::" << endl;
+        cout << "Please specify the query file:" << endl;
         string file_name;
         cin >> file_name;
-        vector<pair<string, float>> result = startNewQuery(file_name, 10, true);
+        cout << "Please enter the amount of shapes to return: " << endl;
+        cin >> K;
+        vector<pair<string, float>> result = startNewQuery(file_name, K, false, 0.05, 0.19);
 
         cout << "#############" << endl;
         cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < K; i++) {
             cout << result[i].first << endl;
             cout << "distance: ";
             cout << result[i].second << endl;
@@ -1011,7 +1026,16 @@ int main(int argc, char* argv[])
         featureExtractStandardized(finput);
     }
     else if (input == 'e') {
-        performEvaluation(10);
+        loadDB("outputStand.csv");
+        performEvaluation(10, false, 0.1, 0.18);
+        /*float w1 = 0.05;
+        float w2 = 0.19;
+        while (w1 > 0.0) {
+            performEvaluation(10, false, w1, w2);
+            w1 -= 0.05;
+            w2 = ((1.0 - w1) / 5);
+        }*/
+
     }
 
     
