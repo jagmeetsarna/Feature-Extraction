@@ -43,8 +43,6 @@ int bins = 14;
 
 float SAval1, SAval2, COval1, COval2, BBVval1, BBVval2, DIAval1, DIAval2, ECCval1, ECCval2;
 
-//float w_f = 0.05, w_h = 0.19;
-
 // Dictionary for the number of shapes in the whole data base
 map<string, int> db_count;
 int num_entries = 0;
@@ -97,13 +95,6 @@ void draw5()
     renderer.draw(*grid_5);
 }
 
-
-void renderString(float x, float y, const unsigned char* string)
-{
-    glRasterPos2f(x, y);
-    glutBitmapLength(GLUT_BITMAP_HELVETICA_10, string);
-}
-
 bool sortbysec(const pair<string, float>& a, const pair<string, float>& b)
 {
     return (a.second < b.second);
@@ -133,18 +124,6 @@ void scanFolder(string location)
         }
     }
     cout << "Scanning complete!" << endl;
-}
-
-
-void keyboard(unsigned char c, int, int)					//Callback for keyboard events:
-{
-    switch (c)
-    {
-    case ' ':											    // space:   Toggle through the various drawing styles of the mesh renderer
-    {
-        break;
-    }
-    }
 }
 
 float normalize(float value, float min, float max)
@@ -197,6 +176,7 @@ void loadFilter()
     }
 }
 
+// Function to read the feature csv file. file is the path to the csv file.
 void loadDB(string file) 
 {
 
@@ -209,8 +189,8 @@ void loadDB(string file)
     string line, word, temp, name, shape_class;
     float val;
 
-    ANNpoint* pa; // an array of points
-    ANNdist* ANNdistArray; // an array of squared distances
+    ANNpoint* pa;               // an array of points
+    ANNdist* ANNdistArray;      // an array of squared distances
 
     getline(fin, line);
 
@@ -272,7 +252,6 @@ void loadDB(string file)
         db_count[shape_class] += 1;
 
         for (int i = 1; i < row.size(); i++) {                  // CHANGE i TO 2 WHEN ACCOUNTING FOR SHAPE
-            // cout << row[i] << endl;
             features.push_back(stof(row[i]));
         }
 
@@ -296,6 +275,7 @@ void loadDB(string file)
     tree = new ANNkd_tree(data_points, maxPoints, dims);
 }
 
+// Computes the Euclidean Distance between two feature vectors s1 and s2.
 float eucleanDist(vector<float> s1, vector<float> s2)
 {
     float distance = 0;
@@ -307,7 +287,7 @@ float eucleanDist(vector<float> s1, vector<float> s2)
    
     return distance;
 }
-
+// Computes the cross-bin distance between histograms. s1 and s2 are the histogram vectors.
 float crossBinDist(vector<float> s1, vector<float> s2) {
     float sum = 0;
     float distance = 0;
@@ -327,14 +307,11 @@ float crossBinDist(vector<float> s1, vector<float> s2) {
         }
     }
 
-    /*for (int i = 0; i < s1.size(); i++)
-    {
-        distance += pow((s1[i] - s2[i]), 2);
-    }*/
     return distance;
 }
 
-void featureExtractNormalized(string input)
+//Extracts the features from the data base without standardizing them. input is the path of the data base folder.
+void featureExtract(string input)
 {
     vector<Grid*> grids;
     vector<string> names;
@@ -425,7 +402,7 @@ void featureExtractNormalized(string input)
     }
 
     fstream filtout;
-    filtout.open("output.csv", ios::out);
+    filtout.open("output_not_stand.csv", ios::out);
     filtout << "sep=;" << endl;
     filtout << SAmin << ";" << SAmax << ";" << COmin << ";" << COmax << ";" << BBVmin << ";" << BBVmax << ";" << DIAmin << ";" << DIAmax << ";" << ECCmin << ";" << ECCmax << endl;
     filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
@@ -473,6 +450,7 @@ void featureExtractNormalized(string input)
     filtout.close();
 }
 
+// Extract the features from the data base. input is the directory of the data base folder. The features are standardized.
 void featureExtractStandardized(string input)
 {
     vector<Grid*> grids;
@@ -486,8 +464,6 @@ void featureExtractStandardized(string input)
         string folder = entry.path().string();
         for (const auto& fl : fs::directory_iterator(folder + "/"))
         {
-            //string shape = folder.substr(3);
-            //shapes.push_back(shape);
             string file = fl.path().string();
             string suffix = ".off";
             string name;
@@ -543,8 +519,6 @@ void featureExtractStandardized(string input)
             DIAs.push_back(grid->calculateDiameter());
             ECCs.push_back(grid->calculateEccentricity());
 
-            //grid->outputHist("temp/" + name + ".csv", iterations);
-
             delete(grid);
         }
     }
@@ -590,12 +564,6 @@ void featureExtractStandardized(string input)
     {
         vector<vector<float>> hists = Grid::calcHists(D1min, D1max, D2min, D2max, D3min, D3max, D4min, D4max, A3min, A3max, bins, "temp/" + names[i] + ".csv");
 
-        //vector<float> D1hist = Grid::getD1hist(D1min, D1max, bins, "temp/" + names[i] + ".csv");
-        //vector<float> D3hist = Grid::getD3hist(D3min, D3max, bins, "temp/" + names[i] + ".csv");
-        //vector<float> D4hist = Grid::getD4hist(D4min, D4max, bins, "temp/" + names[i] + ".csv");
-        //vector<float> A3hist = Grid::getA3hist(A3min, A3max, bins, "temp/" + names[i] + ".csv");
-        //vector<float> D2hist = Grid::getD2hist(D2min, D2max, bins, "temp/" + names[i] + ".csv");
-
         filtout << shapes[i] + "/" + names[i] << ";";
 
         filtout << standardize(SAs[i], SAavg, SAsd) << ";";
@@ -630,6 +598,7 @@ void featureExtractStandardized(string input)
     filtout.close();
 }
 
+// Cosine distance
 float cosineSimilarity(vector<float> s1, vector<float> s2)
 {
     float dot = 0.0, denom_a = 0.0, denom_b = 0.0;
@@ -644,6 +613,9 @@ float cosineSimilarity(vector<float> s1, vector<float> s2)
     return dot / (sqrt(denom_a) * sqrt(denom_b));
 }
 
+// Function to perform a query. file_name is the query file, K is the size of the query result, ann_flag is the flag 
+// for the ANN implementation, w1 and w2 are the global features weights and the histograms weights respectively
+// eval is the flag if the query is performed in an evaluation (false if only a simple query with displayed result)
 vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag, float w1, float w2, bool eval) {
 
     int numF = feature_vectors.size();
@@ -662,12 +634,6 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     Grid* query_grid = get<0>(tup);
     ANNpoint query_point = annAllocPt(feature_vectors[0].second.size());
     query_grid->name = name;
-
-    /*float s = query_grid->calculateSurfaceArea();
-    float r = query_grid->calculateSphericity();
-    float b = query_grid->calculateBoundingBoxVol();
-    float d = query_grid->calculateDiameter();
-    float e = query_grid->calculateEccentricity();*/
 
     float s = standardize(query_grid->calculateSurfaceArea(), SAval1, SAval2);
     float r = standardize(query_grid->calculateSphericity(), COval1, COval2);
@@ -734,20 +700,13 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
         vector<float> vec_h4(vec1.begin() + 5 + bins*3, vec1.begin() + 5 + bins*4);
         vector<float> vec_h5(vec1.begin() + 5 + bins*4, vec1.end());
 
-
-        //distance += cosineSimilarity(vecf, query_vector_f);
-
         distance = eucleanDist(vecf, query_vector_f) * w_f;
-
 
         distance += crossBinDist(vec_h1, query_vector_h1) * w_h;
         distance += crossBinDist(vec_h2, query_vector_h2) * w_h;
         distance += crossBinDist(vec_h3, query_vector_h3) * w_h;
         distance += crossBinDist(vec_h4, query_vector_h4) * w_h;
         distance += crossBinDist(vec_h5, query_vector_h5) * w_h;
-
-        //distance = sqrt(distance);                                   // To correctly compute Euclidean
-
 
         int index = get<0>(feature_vectors[i]).find_last_of("\\/");
         string name = get<0>(feature_vectors[i]).substr(index + 1);
@@ -789,12 +748,22 @@ vector<pair<string, float>> startNewQuery(string file_name, int K, bool ann_flag
     grid_Q = get<0>(tup);
     grid_Q->name = name;
     if (eval) delete query_grid;
+
+    cout << "#############" << endl;
+    cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
+    for (int i = 0; i < K; i++) {
+        cout << result[i].first << endl;
+        cout << "distance: ";
+        cout << result[i].second << endl;
+        cout << endl;
+    }
+    cout << "#############" << endl;
     return output;
 }
 
-void performEvaluation(int K, bool ANN, float w1, float w2) {
-
-    //loadDB("outputStand.csv");
+// Function to perform the evaluation. K is the number of the query result size, ANN is the flag to use the ANN implementation
+// w1 and w2 are the weights for global features and histograms respectively (w1 + 5*w2 = 1)
+void performEvaluation(string folder, int K, bool ANN, float w1, float w2) {
 
     vector<vector<pair<string, float>>> results;
     vector<pair<string, float>> shape_nums;
@@ -814,7 +783,7 @@ void performEvaluation(int K, bool ANN, float w1, float w2) {
     int total_TN = 0;
     int total_FP = 0;
     int total_FN = 0;
-    for (const auto& entry : fs::directory_iterator("Evaluation_DB"))
+    for (const auto& entry : fs::directory_iterator(folder))
     {
         folder = entry.path().string();
         int index = folder.find_last_of("\\/");
@@ -903,32 +872,31 @@ void performEvaluation(int K, bool ANN, float w1, float w2) {
     evout << endl;
     evout << "overall accuracy;overall TPR;overall PPV;overall LR" << endl;
     evout << total_acc << ";" << total_TPR << ";" << total_PPV << ";" << total_LR<< endl;
-
-
 }
 
-void displayQueryResult(int argc, char* argv[], vector<pair<string, float>> result) {
+// Function to display the query results. Thakes a vector of pairs of the results to display.
+void displayQueryResult(string folder, int argc, char* argv[], vector<pair<string, float>> result) {
 
     // Read in the query result files
     grid_Q->computeFaceNormals();
     grid_Q->computeVertexNormals();
-    tuple tup = openFile("DB/" + result[0].first);
+    tuple tup = openFile(folder + "/" + result[0].first);
     grid_1 = get<0>(tup);
     grid_1->computeFaceNormals();
     grid_1->computeVertexNormals();
-    tup = openFile("DB/" + result[1].first);
+    tup = openFile(folder + "/" + result[1].first);
     grid_2 = get<0>(tup);
     grid_2->computeFaceNormals();
     grid_2->computeVertexNormals();
-    tup = openFile("DB/" + result[2].first);
+    tup = openFile(folder + "/" + result[2].first);
     grid_3 = get<0>(tup);
     grid_3->computeFaceNormals();
     grid_3->computeVertexNormals();
-    tup = openFile("DB/" + result[3].first);
+    tup = openFile(folder + "/" + result[3].first);
     grid_4 = get<0>(tup);
     grid_4->computeFaceNormals();
     grid_4->computeVertexNormals();
-    tup = openFile("DB/" + result[4].first);
+    tup = openFile(folder + "/" + result[4].first);
     grid_5 = get<0>(tup);
     grid_5->computeFaceNormals();
     grid_5->computeVertexNormals();
@@ -987,7 +955,6 @@ int main(int argc, char* argv[])
         string db_file;
         int K;
         loadDB("outputStand.csv");
-        //loadDB("outputq.csv");
         cout << "Please specify the query file:" << endl;
         string file_name;
         cin >> file_name;
@@ -1002,26 +969,16 @@ int main(int argc, char* argv[])
             ann = _getch();
         }
         if (ann == 'y') ANN = true;
+        
         vector<pair<string, float>> result = startNewQuery(file_name, K, ANN, w1, w2, false);
-
-        cout << "#############" << endl;
-        cout << "CLOSEST SHAPES USING CUSTOM METRIC: " << endl;
-        for (int i = 0; i < K; i++) {
-            cout << result[i].first << endl;
-            cout << "distance: ";
-            cout << result[i].second << endl;
-            cout << endl;
-        }
-        cout << "#############" << endl;
-
-        displayQueryResult(argc, argv, result);
+        displayQueryResult("DB", argc, argv, result);
     }
     else if (input == 'n') {
 
         cout << "Please specify the database folder" << endl;
         string finput;
         cin >> finput;
-        featureExtractNormalized(finput);
+        featureExtract(finput);
     }
     else if (input == 's') {
 
@@ -1032,7 +989,22 @@ int main(int argc, char* argv[])
     }
     else if (input == 'e') {
         loadDB("outputStand.csv");
-        performEvaluation(10, ANN, w1, w2);
+
+        cout << "Please specify the database folder" << endl;
+        string finput;
+        cin >> finput;
+
+        char ann;
+        cout << "Do you want to use the ANN implementation?" << endl;
+        cout << "y / n" << endl;
+        ann = _getch();
+        while (ann != 'y' && ann != 'n') {
+            ann = _getch();
+        }
+        if (ann == 'y') ANN = true;
+        performEvaluation(finput, 10, ANN, w1, w2);
+
+        // Uncomment this block to run the evaluation for different weights
         /*float w1 = 0.05;
         float w2 = 0.19;
         while (w1 > 0.0) {
@@ -1042,7 +1014,5 @@ int main(int argc, char* argv[])
         }*/
 
     }
-
-    
     return 0;
 }
