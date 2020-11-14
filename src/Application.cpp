@@ -457,6 +457,7 @@ void featureExtractStandardized(string input)
     vector<Grid*> grids;
     vector<string> names;
     vector<string> shapes;
+    vector<string> files;
     vector<float> SAs, COs, BBVs, DIAs, ECCs;
     int iterations = 1000;
 
@@ -482,6 +483,7 @@ void featureExtractStandardized(string input)
             }
             string shape = folder.substr(3);
             shapes.push_back(shape);
+            files.push_back(file);
             grid = std::get<0>(openFile(file));
 
             grid->calculateD1();
@@ -563,16 +565,22 @@ void featureExtractStandardized(string input)
     filtout << D1min << ";" << D1max << ";" << D2min << ";" << D2max << ";" << D3min << ";" << D3max << ";" << D4min << ";" << D4max << ";" << A3min << ";" << A3max << endl;
     filtout << "name;Surface Area;Compactness;Bounding Box Volume;Diameter;Eccentricity;D1-1;D1-2;D1-3;D1-4;D1-5;D1-6;D1-7;D1-8;D1-9;D1-10;D1-11;D1-12;D1-13;D1-14;D2-1;D2-2;D2-3;D2-4;D2-5;D2-6;D2-7;D2-8;D2-9;D2-10;D2-11;D2-12;D2-13;D2-14;D3-1;D3-2;D3-3;D3-4;D3-5;D3-6;D3-7;D3-8;D3-9;D3-10;D3-11;D3-12;D3-13;D3-14;D4-1;D4-2;D4-3;D4-4;D4-5;D4-6;D4-7;D4-8;D4-9;D4-10;D4-11;D4-12;D4-13;D4-14;A3-1;A3-2;A3-3;A3-4;A3-5;A3-6;A3-7;A3-8;A3-9;A3-10;A3-11;A3-12;A3-13;A3-14" << endl;
 
-    for (int i = 0; i < SAs.size(); i++)
+    for (int i = 0; i < names.size(); i++)
     {
-        grid = std::get<0>(openFile(names[i]));
+        grid = std::get<0>(openFile(files[i]));
 
         grid->calculateD1();
+        grid->calculateD2(iterations);
+        grid->calculateD3(iterations);
+        grid->calculateD4(iterations);
+        grid->calculateA3(iterations);
         vector<float> D1hist = grid->getD1hist(D1min, D1max, bins);
         vector<float> D2hist = grid->getD2hist(D2min, D2max, bins);
         vector<float> D3hist = grid->getD3hist(D3min, D3max, bins);
         vector<float> D4hist = grid->getD4hist(D4min, D4max, bins);
-        vector<float> A3hist = grid->getA3hist(A3min, A3max, bins);      
+        vector<float> A3hist = grid->getA3hist(A3min, A3max, bins);
+
+        delete grid;
 
         filtout << shapes[i] + "/" + names[i] << ";";
 
@@ -783,7 +791,7 @@ void performEvaluation(string folder, int K, bool ANN, float w1, float w2) {
     vector<float> total_LRs;
     vector<string> class_names;
 
-    string folder;
+    //string folder;
     float total_acc = 0.0;
     float total_TPR = 0.0;
     float total_PPV = 0.0;
@@ -979,6 +987,8 @@ int main(int argc, char* argv[])
             ann = _getch();
         }
         if (ann == 'y') ANN = true;
+
+        cout << "Starting query..." << endl;
         
         vector<pair<string, float>> result = startNewQuery(file_name, K, ANN, w1, w2, false);
         displayQueryResult("DB", argc, argv, result);
@@ -995,6 +1005,7 @@ int main(int argc, char* argv[])
         cout << "Please specify the database folder" << endl;
         string finput;
         cin >> finput;
+        cout << "Starting feature extraction..." << endl;
         featureExtractStandardized(finput);
     }
     else if (input == 'e') {
@@ -1012,6 +1023,7 @@ int main(int argc, char* argv[])
             ann = _getch();
         }
         if (ann == 'y') ANN = true;
+        cout << "Starting evaluation..." << endl;
         performEvaluation(finput, 10, ANN, w1, w2);
 
         // Uncomment this block to run the evaluation for different weights
