@@ -8,7 +8,6 @@ DB
 *.csv
 *.xlsx
 ANN/
-Feature Extraction/ANN.dll
 Feature Extraction/ANN.lib
 Feature Extraction/ANN/
 Feature Extraction/dr_hover.py
