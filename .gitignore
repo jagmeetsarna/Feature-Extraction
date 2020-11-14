@@ -4,7 +4,6 @@ Normalized_DB_Remeshed_PCA
 DB_Test
 *.off
 .vs
-*.csv
 *.xlsx
 ANN/
 Feature Extraction/ANN.lib
